@@ -3517,12 +3517,23 @@
 
             const firebaseConfig = window.firebaseConfig;
             const AUTH_EMAIL_DOMAIN = `${firebaseConfig.projectId}.firebaseapp.com`;
+            const secondaryFirebaseConfig = {
+                apiKey: "AIzaSyCX0An0NnffeRCFGDugKeOI8k8adJC1aqs",
+                authDomain: "wadi-bana-b585b.firebaseapp.com",
+                databaseURL: "https://wadi-bana-b585b-default-rtdb.firebaseio.com/",
+                projectId: "wadi-bana-b585b",
+                storageBucket: "wadi-bana-b585b.firebasestorage.app",
+                messagingSenderId: "57806694102",
+                appId: "1:57806694102:web:8b2f38f1b86c0240290b77"
+            };
 
             let useFirebase = true;
             let rtdb = null;
+            let secondaryRtdb = null;
             let firebaseAuth = null;
             let userManagementAuthPromise = null;
             let firebaseInitError = null;
+            let secondaryFirebaseInitError = null;
             try {
                 const requiredFirebaseKeys = ['apiKey', 'authDomain', 'databaseURL', 'projectId', 'appId'];
                 const missingFirebaseKeys = requiredFirebaseKeys.filter(key => !firebaseConfig?.[key]);
@@ -3536,6 +3547,13 @@
                 console.error("Firebase initialization failed:", e);
                 firebaseInitError = e;
                 useFirebase = false;
+            }
+            try {
+                const secondaryApp = initializeApp(secondaryFirebaseConfig, 'wadi-bina-b585b-sync');
+                secondaryRtdb = getDatabase(secondaryApp);
+            } catch (e) {
+                secondaryFirebaseInitError = e;
+                console.error("Secondary Firebase initialization failed:", e);
             }
 
             let currentUser = null;
@@ -4614,10 +4632,79 @@
             let isFirebaseInitialized = false;
             let syncUnsubscribers = [];
             let hasPendingOfflineWrites = false;
+            let hasPendingSecondaryWrites = false;
             let isApplyingRemote = false;
+            let secondarySyncAvailable = Boolean(secondaryRtdb);
+            let secondarySyncWarningShown = false;
+            let primaryDatabaseConnected = false;
+            let secondaryDatabaseConnected = !secondarySyncAvailable;
+            let primarySnapshotSeen = false;
+            let secondarySnapshotSeen = !secondarySyncAvailable;
+            let dualSyncReady = false;
+            let dualSyncInitialFetchStarted = false;
+            let dualSyncInitialFetchComplete = false;
+            let latestDatabaseSnapshots = { primary: null, secondary: null };
 
             function sanitizeForFirebase(obj) {
                 return JSON.parse(JSON.stringify(obj, (key, value) => value === undefined ? null : value));
+            }
+
+            function normalizeDatabaseSnapshot(value) {
+                const snapshot = value && typeof value === 'object' ? value : {};
+                return {
+                    buses: normalizeArray(snapshot.buses),
+                    trips: normalizeArray(snapshot.trips),
+                    drivers: normalizeArray(snapshot.drivers),
+                    employees: normalizeArray(snapshot.employees),
+                    passengers: normalizeArray(snapshot.passengers),
+                    cargo: normalizeArray(snapshot.cargo),
+                    vouchers: normalizeArray(snapshot.vouchers),
+                    debtInvoices: normalizeArray(snapshot.debtInvoices),
+                    transitVisas: normalizeArray(snapshot.transitVisas),
+                    nextTicketNo: Number(snapshot.nextTicketNo) || 141,
+                    nextCargoNo: Number(snapshot.nextCargoNo) || 158,
+                    nextDebtInvNo: Number(snapshot.nextDebtInvNo) || 2,
+                    nextTransitNo: Number(snapshot.nextTransitNo) || 1,
+                    _lastUpdated: Number(snapshot._lastUpdated) || 0
+                };
+            }
+
+            function mergeInitialDatabaseSnapshots(...snapshots) {
+                const sources = snapshots
+                    .filter(snapshot => snapshot && typeof snapshot === 'object')
+                    .map(normalizeDatabaseSnapshot)
+                    .sort((left, right) => left._lastUpdated - right._lastUpdated);
+                if (!sources.length) return null;
+
+                const merged = { ...sources[sources.length - 1] };
+                const arrayFields = [
+                    'buses', 'trips', 'drivers', 'employees', 'passengers', 'cargo',
+                    'vouchers', 'debtInvoices', 'transitVisas'
+                ];
+                arrayFields.forEach(field => {
+                    const records = new Map();
+                    sources.forEach(source => {
+                        source[field].forEach(record => {
+                            const key = record && record.id !== undefined
+                                ? `id:${record.id}`
+                                : `value:${JSON.stringify(record)}`;
+                            records.set(key, record);
+                        });
+                    });
+                    merged[field] = [...records.values()];
+                });
+                [
+                    'nextTicketNo', 'nextCargoNo', 'nextDebtInvNo', 'nextTransitNo'
+                ].forEach(field => {
+                    merged[field] = Math.max(...sources.map(source => source[field]));
+                });
+                merged._lastUpdated = Math.max(Date.now(), ...sources.map(source => source._lastUpdated));
+                return merged;
+            }
+
+            function databaseSnapshotsEqual(left, right) {
+                return JSON.stringify(normalizeDatabaseSnapshot(left))
+                    === JSON.stringify(normalizeDatabaseSnapshot(right));
             }
 
             function pushCloudUsers(removedUserUids = [], previousUsers = []) {
@@ -4704,22 +4791,8 @@
                 if (!val || isApplyingRemote) return;
                 isApplyingRemote = true;
                 try {
-                    db = {
-                        buses: normalizeArray(val.buses),
-                        trips: normalizeArray(val.trips),
-                        drivers: normalizeArray(val.drivers),
-                        employees: normalizeArray(val.employees),
-                        passengers: normalizeArray(val.passengers),
-                        cargo: normalizeArray(val.cargo),
-                        vouchers: normalizeArray(val.vouchers),
-                        debtInvoices: normalizeArray(val.debtInvoices),
-                        transitVisas: normalizeArray(val.transitVisas),
-                        nextTicketNo: val.nextTicketNo || 141,
-                        nextCargoNo: val.nextCargoNo || 158,
-                        nextDebtInvNo: val.nextDebtInvNo || 2,
-                        nextTransitNo: val.nextTransitNo || 1,
-                        _lastUpdated: val._lastUpdated || Date.now()
-                    };
+                    db = normalizeDatabaseSnapshot(val);
+                    if (!db._lastUpdated) db._lastUpdated = Date.now();
                     validateAndRepairDB();
                     refreshUI();
                     cloudDataLoaded = true;
@@ -4729,13 +4802,121 @@
                 }
             }
 
+            function reportSecondarySyncError(message, error) {
+                console.error(message, error);
+                if (secondarySyncWarningShown) return;
+                secondarySyncWarningShown = true;
+                const permissionDenied = error?.code === 'PERMISSION_DENIED'
+                    || /permission[_ ]denied/i.test(error?.message || '');
+                showCloudError(permissionDenied
+                    ? `${message} تحقق من قواعد القراءة والكتابة لقاعدة b585b.`
+                    : message);
+            }
+
+            function handleDualDatabaseSnapshot(source, value) {
+                if (source === 'primary') {
+                    primarySnapshotSeen = true;
+                    cloudDataExists = Boolean(value);
+                    cloudDataLoaded = true;
+                } else {
+                    secondarySnapshotSeen = true;
+                }
+                latestDatabaseSnapshots[source] = value && typeof value === 'object' ? value : null;
+
+                if (!dualSyncReady) {
+                    if (!primarySnapshotSeen || !secondarySnapshotSeen
+                        || !primaryDatabaseConnected || !secondaryDatabaseConnected
+                        || !dualSyncInitialFetchComplete) return;
+                    dualSyncReady = true;
+                    const localSnapshot = hasPendingOfflineWrites ? sanitizeForFirebase(db) : null;
+                    const merged = mergeInitialDatabaseSnapshots(
+                        latestDatabaseSnapshots.primary,
+                        secondarySyncAvailable ? latestDatabaseSnapshots.secondary : null,
+                        localSnapshot
+                    );
+                    if (merged) applyRemoteSnapshot(merged);
+                    else db._lastUpdated = Math.max(Date.now(), Number(db._lastUpdated) || 0);
+                    pushLocalToFirebase();
+                    return;
+                }
+
+                if (!value || typeof value !== 'object') {
+                    pushLocalToFirebase();
+                    return;
+                }
+
+                const remoteTimestamp = Number(value._lastUpdated) || 0;
+                const localTimestamp = Number(db._lastUpdated) || 0;
+                if (remoteTimestamp > localTimestamp
+                    || (remoteTimestamp === localTimestamp
+                        && source === 'primary'
+                        && !databaseSnapshotsEqual(value, db))) {
+                    applyRemoteSnapshot(value);
+                    pushLocalToFirebase();
+                } else if (remoteTimestamp < localTimestamp
+                    || !databaseSnapshotsEqual(value, db)) {
+                    pushLocalToFirebase();
+                }
+            }
+
+            function loadInitialDualDatabaseSnapshots() {
+                if (dualSyncInitialFetchStarted
+                    || !primaryDatabaseConnected
+                    || !secondaryDatabaseConnected) return;
+                dualSyncInitialFetchStarted = true;
+
+                const primaryRead = get(ref(rtdb, 'systemUnifiedData'))
+                    .then(snapshot => {
+                        latestDatabaseSnapshots.primary = snapshot.val();
+                        primarySnapshotSeen = true;
+                        return true;
+                    })
+                    .catch(error => {
+                        dualSyncInitialFetchStarted = false;
+                        reportFirebaseSyncError('تعذر جلب بيانات النظام من Firebase.', error);
+                        return false;
+                    });
+                const secondaryRead = secondarySyncAvailable && secondaryRtdb
+                    ? get(ref(secondaryRtdb, 'systemUnifiedData'))
+                        .then(snapshot => {
+                            latestDatabaseSnapshots.secondary = snapshot.val();
+                            secondarySnapshotSeen = true;
+                            return true;
+                        })
+                        .catch(error => {
+                            secondarySyncAvailable = false;
+                            secondarySnapshotSeen = true;
+                            reportSecondarySyncError(
+                                'تعذر جلب بيانات النظام من قاعدة b585b.',
+                                error
+                            );
+                            return false;
+                        })
+                    : Promise.resolve(true);
+
+                Promise.all([primaryRead, secondaryRead]).then(([primaryLoaded]) => {
+                    if (!primaryLoaded) return;
+                    dualSyncInitialFetchComplete = true;
+                    handleDualDatabaseSnapshot('primary', latestDatabaseSnapshots.primary);
+                    if (secondarySyncAvailable) {
+                        handleDualDatabaseSnapshot('secondary', latestDatabaseSnapshots.secondary);
+                    }
+                });
+            }
+
             function pushLocalToFirebase() {
                 if (!useFirebase || !rtdb || !activeAuthUid || !navigator.onLine) {
                     hasPendingOfflineWrites = true;
+                    hasPendingSecondaryWrites = true;
+                    return Promise.resolve(false);
+                }
+                if (!dualSyncReady) {
+                    hasPendingOfflineWrites = true;
+                    hasPendingSecondaryWrites = true;
                     return Promise.resolve(false);
                 }
                 const cleanPayload = sanitizeForFirebase(db);
-                return set(ref(rtdb, 'systemUnifiedData'), cleanPayload)
+                const primaryWrite = set(ref(rtdb, 'systemUnifiedData'), cleanPayload)
                     .then(() => {
                         hasPendingOfflineWrites = false;
                         return true;
@@ -4745,26 +4926,48 @@
                         reportFirebaseSyncError('تعذر مزامنة التغييرات مع Firebase.', err);
                         return false;
                     });
+                const secondaryWrite = secondarySyncAvailable && secondaryRtdb
+                    ? set(ref(secondaryRtdb, 'systemUnifiedData'), cleanPayload)
+                        .then(() => {
+                            hasPendingSecondaryWrites = false;
+                            secondarySyncWarningShown = false;
+                            return true;
+                        })
+                        .catch(err => {
+                            hasPendingSecondaryWrites = true;
+                            reportSecondarySyncError('تعذر مزامنة التغييرات مع قاعدة b585b.', err);
+                            return false;
+                        })
+                    : Promise.resolve().then(() => {
+                        hasPendingSecondaryWrites = true;
+                        return false;
+                    });
+                return Promise.all([primaryWrite, secondaryWrite])
+                    .then(results => results.every(Boolean));
             }
 
             function forcePullFromFirebase() {
-                if (!useFirebase || !rtdb || !activeAuthUid || !navigator.onLine) return;
-                if (hasPendingOfflineWrites) {
+                if (!useFirebase || !rtdb || !activeAuthUid || !navigator.onLine
+                    || !primaryDatabaseConnected) return;
+                if (!dualSyncReady) {
+                    loadInitialDualDatabaseSnapshots();
+                    return;
+                }
+                if (hasPendingOfflineWrites
+                    || (hasPendingSecondaryWrites && secondarySyncAvailable)) {
                     pushLocalToFirebase();
                     return;
                 }
                 get(ref(rtdb, 'systemUnifiedData')).then((snapshot) => {
-                    if (snapshot.exists()) {
-                        const remoteVal = snapshot.val();
-                        const remoteTs = remoteVal._lastUpdated || 0;
-                        const localTs = db._lastUpdated || 0;
-                        if (remoteTs >= localTs || !localTs) {
-                            applyRemoteSnapshot(remoteVal);
-                        } else {
-                            pushLocalToFirebase();
-                        }
-                    }
+                    handleDualDatabaseSnapshot('primary', snapshot.val());
                 }).catch(err => reportFirebaseSyncError('تعذر جلب بيانات النظام من Firebase.', err));
+                if (secondarySyncAvailable && secondaryRtdb && secondaryDatabaseConnected) {
+                    get(ref(secondaryRtdb, 'systemUnifiedData')).then(snapshot => {
+                        handleDualDatabaseSnapshot('secondary', snapshot.val());
+                    }).catch(err => {
+                        reportSecondarySyncError('تعذر جلب بيانات النظام من قاعدة b585b.', err);
+                    });
+                }
             }
 
             function initSync() {
@@ -4783,6 +4986,11 @@
                 isFirebaseInitialized = true;
 
                 syncUnsubscribers.push(onValue(ref(rtdb, '.info/connected'), (snap) => {
+                    primaryDatabaseConnected = snap.val() === true;
+                    if (primaryDatabaseConnected) loadInitialDualDatabaseSnapshots();
+                    if (primaryDatabaseConnected && primarySnapshotSeen) {
+                        handleDualDatabaseSnapshot('primary', latestDatabaseSnapshots.primary);
+                    }
                     if (snap.val() === true) {
                         if (hasPendingOfflineWrites) {
                             pushLocalToFirebase();
@@ -4846,24 +5054,38 @@
                 }
 
                 syncUnsubscribers.push(onValue(ref(rtdb, 'systemUnifiedData'), snapshot => {
-                    const value = snapshot.val();
-                    if (value) {
-                        cloudDataExists = true;
-                        cloudDataLoaded = true;
-                        if (hasPendingOfflineWrites) {
-                            pushLocalToFirebase();
-                        } else {
-                            applyRemoteSnapshot(value);
-                        }
-                    } else {
-                        cloudDataExists = false;
-                        cloudDataLoaded = true;
-                        saveDB(true);
-                        refreshUI();
-                    }
+                    handleDualDatabaseSnapshot('primary', snapshot.val());
                 }, (error) => {
                     reportFirebaseSyncError('تعذر تحميل بيانات النظام من Firebase. تحقق من قواعد systemUnifiedData.', error);
                 }));
+
+                if (secondaryRtdb) {
+                    syncUnsubscribers.push(onValue(ref(secondaryRtdb, '.info/connected'), snap => {
+                        secondaryDatabaseConnected = snap.val() === true;
+                        if (secondaryDatabaseConnected) loadInitialDualDatabaseSnapshots();
+                        if (secondaryDatabaseConnected && secondarySnapshotSeen) {
+                            handleDualDatabaseSnapshot('secondary', latestDatabaseSnapshots.secondary);
+                            if (hasPendingSecondaryWrites && dualSyncReady) pushLocalToFirebase();
+                        }
+                    }));
+                    syncUnsubscribers.push(onValue(ref(secondaryRtdb, 'systemUnifiedData'), snapshot => {
+                        secondarySyncAvailable = true;
+                        secondarySyncWarningShown = false;
+                        handleDualDatabaseSnapshot('secondary', snapshot.val());
+                        if (hasPendingSecondaryWrites && dualSyncReady) pushLocalToFirebase();
+                    }, error => {
+                        secondarySyncAvailable = false;
+                        secondaryDatabaseConnected = true;
+                        reportSecondarySyncError('تعذر تحميل بيانات النظام من قاعدة b585b.', error);
+                        handleDualDatabaseSnapshot('secondary', null);
+                        loadInitialDualDatabaseSnapshots();
+                    }));
+                } else {
+                    reportSecondarySyncError(
+                        'تعذر تهيئة قاعدة b585b الثانوية.',
+                        secondaryFirebaseInitError
+                    );
+                }
 
                 if (!isSyncListenerAttached) {
                     isSyncListenerAttached = true;
@@ -4872,7 +5094,8 @@
                     });
                     window.addEventListener("focus", () => forcePullFromFirebase());
                     window.addEventListener("online", () => {
-                        if (hasPendingOfflineWrites) {
+                        if (hasPendingOfflineWrites
+                            || (hasPendingSecondaryWrites && secondarySyncAvailable)) {
                             pushLocalToFirebase();
                         } else {
                             forcePullFromFirebase();
@@ -4884,7 +5107,7 @@
             function saveDB(forceImmediate = false) {
                 if (isApplyingRemote && !forceImmediate && !isMahmoud()) return;
                 calculateNextSequenceNumbers();
-                db._lastUpdated = Date.now();
+                db._lastUpdated = Math.max(Date.now(), (Number(db._lastUpdated) || 0) + 1);
                 if (isMahmoud()) {
                     db._lastMahmoudOverride = Date.now();
                 }

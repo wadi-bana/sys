@@ -924,7 +924,7 @@
                     <div class="text-gold text-3xl mb-2"><i class="fa-solid fa-key"></i></div>
                     <h3 id="recoveryTitle" class="text-gold font-extrabold">استعادة كلمة المرور</h3>
                     <p id="recoveryDescription" class="text-zinc-400 text-xs mt-2 leading-6">
-                        أرسل طلباً للإدارة. بعد التحقق والموافقة، تواصل مع المدير للحصول على كلمة مرور مؤقتة ثم غيّرها بعد الدخول.
+                        أدخل رقم الهاتف المسجل وكلمة المرور الجديدة. عند تطابق الرقم سيتم التغيير مباشرة، وإلا يُرسل طلب للإدارة.
                     </p>
                 </div>
                 <p id="passwordRecoveryStatus" class="hidden mb-3 rounded-lg border border-gold/30 bg-zinc-900 p-3 text-xs leading-6 text-zinc-200"
@@ -941,6 +941,12 @@
                         <input id="recoveryPhone" type="tel" required inputmode="tel" autocomplete="tel"
                             class="w-full bg-darkbg border border-zinc-700 rounded-xl px-4 py-3 text-sm text-zinc-100 outline-none"
                             placeholder="رقم الهاتف / واتساب">
+                    </div>
+                    <div>
+                        <label id="recoveryNewPasswordLabel" for="recoveryNewPassword" class="block text-xs font-bold text-zinc-300 mb-2">كلمة المرور الجديدة</label>
+                        <input id="recoveryNewPassword" type="password" required minlength="6" autocomplete="new-password"
+                            class="w-full bg-darkbg border border-zinc-700 rounded-xl px-4 py-3 text-sm text-zinc-100 outline-none"
+                            placeholder="6 أحرف على الأقل">
                     </div>
                     <div>
                         <label id="recoveryBranchLabel" for="recoveryBranch" class="block text-xs font-bold text-zinc-300 mb-2">الفرع</label>
@@ -3398,7 +3404,7 @@
                         <h3
                             class="text-gold font-bold text-sm border-b border-zinc-800 pb-3 flex items-center justify-between">
                             <span><i class="fa-solid fa-users-gear ml-1"></i> لوحة إدارة المستخدمين وصلاحيات الأفرع
-                                (مدير عام / محاسب الإدارة / مدراء الفروع / المحاسبون / الموظفون / السائقون)</span>
+                                (مخصصة للحساب الإداري)</span>
                         </h3>
 
                         <div id="managerPortalIdentity" class="rounded-xl border border-gold/40 bg-zinc-950/70 p-3 text-xs leading-6 text-zinc-200">
@@ -3420,7 +3426,7 @@
                         <form id="userForm" onsubmit="handleSaveUser(event)"
                             class="bg-darkbg p-4 rounded-xl border border-zinc-800 space-y-3">
                             <input type="hidden" id="userEditOriginalName" value="">
-                            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-5 gap-3">
                                 <div>
                                     <label class="block text-xs text-zinc-400 mb-1 font-bold">اسم المستخدم</label>
                                     <input type="text" id="manageUsername" required maxlength="60"
@@ -3429,10 +3435,16 @@
                                         placeholder="اسم المستخدم">
                                 </div>
                                 <div>
-                                    <label class="block text-xs text-zinc-400 mb-1 font-bold">كلمة المرور (للحساب الجديد فقط)</label>
+                                    <label class="block text-xs text-zinc-400 mb-1 font-bold">كلمة المرور (اتركها فارغة دون تغيير)</label>
                                     <input type="password" id="managePassword" minlength="6"
                                         class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-xs text-zinc-100"
                                         placeholder="مطلوبة عند إنشاء حساب">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-zinc-400 mb-1 font-bold">رقم الهاتف *</label>
+                                    <input type="tel" id="managePhone" required maxlength="40" inputmode="tel" autocomplete="tel"
+                                        class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-xs text-zinc-100"
+                                        placeholder="رقم الهاتف المسجل">
                                 </div>
                                 <div>
                                     <label class="block text-xs text-zinc-400 mb-1 font-bold">الدور والصلاحية</label>
@@ -3512,6 +3524,7 @@
                 signOut,
                 updatePassword
             } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
+            import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-functions.js";
 
             const { jsPDF } = window.jspdf;
 
@@ -3521,6 +3534,7 @@
             let useFirebase = true;
             let rtdb = null;
             let firebaseAuth = null;
+            let firebaseFunctions = null;
             let userManagementAuthPromise = null;
             let firebaseInitError = null;
             try {
@@ -3532,6 +3546,7 @@
                 const app = initializeApp(firebaseConfig);
                 rtdb = getDatabase(app);
                 firebaseAuth = getAuth(app);
+                firebaseFunctions = getFunctions(app, 'asia-southeast1');
             } catch (e) {
                 console.error("Firebase initialization failed:", e);
                 firebaseInitError = e;
@@ -3657,14 +3672,7 @@
                 'موظف': 5,
                 'سائق': 6
             };
-            const MANAGER_PORTAL_ROLES = new Set([
-                'مالك',
-                'مدير عام',
-                'محاسب الإدارة',
-                'مدير فرع',
-                'مدير',
-                'مدير فرع ومحاسب'
-            ]);
+            const USER_ACCOUNT_MANAGER = 'mahmoud.abdulkarim';
             const ROLE_FIREBASE_VALUES = Object.fromEntries(
                 Object.entries(FIREBASE_ROLE_LABELS).map(([key, value]) => [value, key])
             );
@@ -3675,10 +3683,11 @@
 
             function normalizeUserProfile(profile, uid) {
                 const role = profile.role || 'employee';
+                const username = profile.username || profile.fullName || profile.name || uid;
                 return {
                     ...profile,
                     uid,
-                    username: profile.username || profile.fullName || profile.name || uid,
+                    username,
                     fullName: profile.fullName || profile.name || profile.username || '',
                     role: FIREBASE_ROLE_LABELS[role] || role,
                     branch: FIREBASE_BRANCH_LABELS[profile.branchId || profile.branch]
@@ -3687,6 +3696,7 @@
                         || 'فرع عجمان',
                     active: profile.active === true,
                     hidden: profile.hidden === true
+                        || String(username).trim().toLowerCase() === USER_ACCOUNT_MANAGER
                 };
             }
 
@@ -3701,7 +3711,8 @@
                     branchId: branchCode,
                     active: profile.active !== false,
                     hidden: profile.hidden === true,
-                    authEnabled: true
+                    authEnabled: true,
+                    phone: String(profile.phone || '').trim()
                 };
                 return serialized;
             }
@@ -3789,11 +3800,13 @@
                     managerLoginBackBtn: 'العودة لتسجيل دخول الموظف',
                     managerPortalIdentityLabel: 'تم التعرف على الحساب:',
                     recoveryTitle: 'استعادة كلمة المرور',
-                    recoveryDescription: 'أرسل طلباً مع رقم التواصل. ستتحقق الإدارة وتتواصل معك؛ تُعيّن كلمة المرور المؤقتة يدوياً، ثم غيّرها بعد الدخول.',
+                    recoveryDescription: 'أدخل رقم الهاتف المسجل وكلمة المرور الجديدة. عند تطابق الرقم سيتم التغيير مباشرة، وإلا يُرسل طلب للإدارة.',
                     recoveryUsernameLabel: 'اسم المستخدم / الموظف',
                     recoveryUsername: 'اسم المستخدم المسجل',
                     recoveryPhoneLabel: 'رقم الهاتف للتواصل والتحقق',
                     recoveryPhone: 'رقم الهاتف / واتساب',
+                    recoveryNewPasswordLabel: 'كلمة المرور الجديدة',
+                    recoveryNewPassword: '6 أحرف على الأقل',
                     recoveryBranchLabel: 'الفرع',
                     recoveryBranchAjman: 'فرع عجمان',
                     recoveryBranchAbuDhabi: 'فرع أبوظبي',
@@ -3806,13 +3819,14 @@
                     submitApprovedPasswordReset: 'تعيين كلمة المرور الجديدة',
                     newPasswordResetRequestBtn: 'إرسال طلب جديد',
                     backToLoginBtn: 'العودة إلى تسجيل الدخول',
-                    resetRequestPending: 'تم إرسال طلب الاستعادة للإدارة. ستتواصل الإدارة معك على رقم الهاتف المقدم؛ لا يمكن تغيير كلمة المرور تلقائياً من هذه الصفحة.',
-                    resetRequestApproved: 'تمت الموافقة على طلبك. تواصل مع المدير للحصول على كلمة مرور مؤقتة، ثم غيّرها بعد تسجيل الدخول.',
+                    resetRequestPending: 'لم يتطابق رقم الهاتف مع الرقم المسجل؛ أُرسل طلبك للإدارة للمراجعة.',
+                    resetRequestApproved: 'تم تغيير كلمة المرور مباشرة بعد مطابقة رقم الهاتف. يمكنك تسجيل الدخول بكلمة المرور الجديدة.',
                     resetRequestRejected: 'تعذر اعتماد الطلب. تواصل مع المدير العام للتحقق من بياناتك.',
                     resetRequestCompleted: 'تمت معالجة الطلب. تواصل مع المدير إذا كنت تحتاج كلمة مرور مؤقتة.',
                     resetRequestMissing: 'تعذر العثور على طلب الاستعادة. أرسل طلباً جديداً أو تواصل مع المدير.',
                     resetRequestError: 'تعذر إرسال الطلب أو تحديثه. تحقق من الاتصال ثم حاول مجدداً.',
                     resetPhoneInvalid: 'أدخل اسم المستخدم ورقم هاتف صحيحاً للتواصل والتحقق.',
+                    resetPasswordInvalid: 'كلمة المرور الجديدة يجب ألا تقل عن 6 أحرف.',
                     resetConnectionError: 'تعذر الاتصال بالنظام حالياً. تواصل مع المدير العام.',
                     resetPasswordMismatch: 'كلمتا المرور غير متطابقتين.',
                     resetPasswordTooShort: 'كلمة المرور يجب ألا تقل عن 6 أحرف أو أرقام.',
@@ -3856,11 +3870,13 @@
                     managerLoginBackBtn: 'Back to employee sign-in',
                     managerPortalIdentityLabel: 'Account identified:',
                     recoveryTitle: 'Password recovery',
-                    recoveryDescription: 'Send a request with your contact number. Management will verify and contact you; a temporary password is set manually, then change it after signing in.',
+                    recoveryDescription: 'Enter the registered phone number and a new password. A matching number changes it immediately; otherwise, a request is sent to management.',
                     recoveryUsernameLabel: 'Username / employee',
                     recoveryUsername: 'Registered username',
                     recoveryPhoneLabel: 'Phone number for contact and verification',
                     recoveryPhone: 'Phone / WhatsApp number',
+                    recoveryNewPasswordLabel: 'New password',
+                    recoveryNewPassword: 'At least 6 characters',
                     recoveryBranchLabel: 'Branch',
                     recoveryBranchAjman: 'Ajman branch',
                     recoveryBranchAbuDhabi: 'Abu Dhabi branch',
@@ -3873,13 +3889,14 @@
                     submitApprovedPasswordReset: 'Set new password',
                     newPasswordResetRequestBtn: 'Send a new request',
                     backToLoginBtn: 'Back to sign in',
-                    resetRequestPending: 'Your recovery request was sent to management. They will contact you at the phone number provided; this page cannot change passwords automatically.',
-                    resetRequestApproved: 'Your request was approved. Contact a manager for a temporary password, then change it after signing in.',
+                    resetRequestPending: 'The phone number did not match the registered number; your request was sent to management for review.',
+                    resetRequestApproved: 'Your password was changed immediately after the phone number matched. You can now sign in with the new password.',
                     resetRequestRejected: 'The request was not approved. Contact the general manager to verify your details.',
                     resetRequestCompleted: 'The request was processed. Contact a manager if you need a temporary password.',
                     resetRequestMissing: 'The recovery request could not be found. Send a new request or contact a manager.',
                     resetRequestError: 'The request could not be sent or updated. Check your connection and try again.',
                     resetPhoneInvalid: 'Enter the username and a valid phone number for contact and verification.',
+                    resetPasswordInvalid: 'The new password must be at least 6 characters.',
                     resetConnectionError: 'The system is currently unavailable. Contact the general manager.',
                     resetPasswordMismatch: 'The passwords do not match.',
                     resetPasswordTooShort: 'Password must be at least 6 characters.',
@@ -3913,7 +3930,10 @@
             }
 
             function isFullSystemUserManager() {
-                return Boolean(currentUser && ['مالك', 'مدير عام', 'محاسب الإدارة'].includes(currentUser.role));
+                return Boolean(currentUser && (
+                    String(currentUser.username || '').trim().toLowerCase() === USER_ACCOUNT_MANAGER
+                    || ['مالك', 'مدير عام', 'محاسب الإدارة'].includes(currentUser.role)
+                ));
             }
 
             function isMahmoudOrGeneralManager() {
@@ -3929,7 +3949,8 @@
             }
 
             function canManageSystemUsers() {
-                return Boolean(currentUser && MANAGER_PORTAL_ROLES.has(currentUser.role));
+                return Boolean(currentUser
+                    && String(currentUser.username || '').trim().toLowerCase() === USER_ACCOUNT_MANAGER);
             }
 
             function getUserRoleRank(role) {
@@ -3946,7 +3967,9 @@
             }
 
             function canManageUserTarget(user) {
-                if (!currentUser || !user) return false;
+                if (!canManageSystemUsers() || !user || user.uid === activeAuthUid) return false;
+                if (String(user.username || '').trim().toLowerCase() === USER_ACCOUNT_MANAGER) return false;
+                if (String(currentUser.username || '').trim().toLowerCase() === USER_ACCOUNT_MANAGER) return true;
                 if (currentUser.role === 'مالك') return true;
                 if (user.role === 'مالك' || !isUserInManagerScope(user)) return false;
                 const managerRank = getUserRoleRank(currentUser.role);
@@ -3956,7 +3979,8 @@
             }
 
             function canAssignUserRole(role) {
-                if (!currentUser) return false;
+                if (!canManageSystemUsers()) return false;
+                if (String(currentUser.username || '').trim().toLowerCase() === USER_ACCOUNT_MANAGER) return true;
                 if (currentUser.role === 'مالك') return true;
                 if (role === 'مالك') return false;
                 const managerRank = getUserRoleRank(currentUser.role);
@@ -4168,6 +4192,10 @@
                         passwordHash: null,
                         password: null
                     };
+                    if (String(profile.username || '').trim().toLowerCase() === USER_ACCOUNT_MANAGER) {
+                        authProfileUpdates.hidden = true;
+                        profile.hidden = true;
+                    }
                     await update(ref(rtdb, `users/${profileUid}`), authProfileUpdates);
                     currentUser = normalizeUserProfile({ ...profile, authEnabled: true }, profileUid);
                     activeAuthUid = profileUid;
@@ -4431,26 +4459,40 @@
                 const phone = document.getElementById('recoveryPhone').value.trim();
                 const phoneDigits = phone.replace(/\D/g, '');
                 const branch = document.getElementById('recoveryBranch').value;
+                const password = document.getElementById('recoveryNewPassword').value;
                 if (!username || phoneDigits.length < 7) {
                     setPasswordRecoveryStatus(recoveryText('resetPhoneInvalid'), true);
+                    return;
+                }
+                if (password.length < 6) {
+                    setPasswordRecoveryStatus(recoveryText('resetPasswordInvalid'), true);
                     return;
                 }
 
                 const submitButton = document.getElementById('submitPasswordResetRequest');
                 submitButton.disabled = true;
                 try {
-                    const requestRef = push(ref(rtdb, 'passwordResetRequests'));
-                    await set(requestRef, {
+                    const recoverPassword = httpsCallable(firebaseFunctions, 'recoverPasswordByPhone');
+                    const result = await recoverPassword({
                         username,
                         phone,
                         branch,
-                        status: 'pending',
-                        requestedAt: Date.now()
+                        password
                     });
-                    sessionStorage.setItem('wadiBanaPasswordResetRequestId', requestRef.key);
-                    setPasswordRecoveryStatus(recoveryText('resetRequestPending'));
+                    const { completed, requestId } = result.data || {};
+                    document.getElementById('recoveryNewPassword').value = '';
                     document.getElementById('passwordResetRequestForm').classList.add('hidden');
-                    document.getElementById('newPasswordResetRequestBtn').classList.remove('hidden');
+                    if (completed) {
+                        sessionStorage.removeItem('wadiBanaPasswordResetRequestId');
+                        setPasswordRecoveryStatus(recoveryText('resetRequestApproved'));
+                        document.getElementById('newPasswordResetRequestBtn').classList.add('hidden');
+                    } else if (requestId) {
+                        sessionStorage.setItem('wadiBanaPasswordResetRequestId', requestId);
+                        setPasswordRecoveryStatus(recoveryText('resetRequestPending'));
+                        document.getElementById('newPasswordResetRequestBtn').classList.remove('hidden');
+                    } else {
+                        throw new Error('تعذر إنشاء طلب استعادة كلمة المرور.');
+                    }
                 } catch (error) {
                     console.error('Password recovery request submission failed:', error);
                     setPasswordRecoveryStatus(recoveryText('resetRequestError'), true);
@@ -8822,11 +8864,16 @@ Status: Payment Received - Pending Approval`,
                 e.preventDefault();
                 if (!canManageSystemUsers()) { alert('لا تملك صلاحية إدارة الحسابات.'); return; }
                 const origName = document.getElementById('userEditOriginalName').value;
-                const username = document.getElementById('manageUsername').value.trim();
+                const username = document.getElementById('manageUsername').value.trim().toLowerCase();
                 const password = document.getElementById('managePassword')?.value || '';
+                const phone = document.getElementById('managePhone').value.trim();
                 const role = document.getElementById('manageRole').value;
                 let branch = document.getElementById('manageBranch').value;
                 if (!isFullSystemUserManager()) branch = currentUser.branch;
+                if (phone.replace(/\D/g, '').length < 7) {
+                    alert('أدخل رقم هاتف صحيحاً يتكون من 7 أرقام على الأقل.');
+                    return;
+                }
 
                 if (!canAssignUserRole(role)) {
                     alert('لا تملك صلاحية منح هذا الدور أو تعديله وفق التسلسل الإداري.');
@@ -8840,10 +8887,6 @@ Status: Payment Received - Pending Approval`,
                     }
                     if (password.length < 6) {
                         alert('كلمة المرور يجب ألا تقل عن 6 أحرف.');
-                        return;
-                    }
-                    if (role === 'مالك' && currentUser.role !== 'مالك') {
-                        alert('لا يمكن منح صلاحية المالك إلا لحساب مالك موجود.');
                         return;
                     }
                     if (cloudUsers.some(user => String(user.username).trim().toLocaleLowerCase('ar') === username.toLocaleLowerCase('ar'))) {
@@ -8867,7 +8910,8 @@ Status: Payment Received - Pending Approval`,
                             role,
                             branch,
                             active: true,
-                            authEnabled: true
+                            authEnabled: true,
+                            phone
                         }];
                         await saveCloudUsers(users);
                         await writeUserAuditLog('CREATE_USER', username, { role, branch });
@@ -8895,11 +8939,6 @@ Status: Payment Received - Pending Approval`,
                     }
                     return;
                 }
-                if (role === 'مالك' && currentUser.role !== 'مالك') {
-                    alert('لا يمكن منح صلاحية المالك إلا لحساب مالك موجود.');
-                    return;
-                }
-
                 const users = [...cloudUsers];
                 const idx = users.findIndex(user => user.username === origName);
                 if (idx === -1) {
@@ -8916,23 +8955,33 @@ Status: Payment Received - Pending Approval`,
                     alert('لا تملك صلاحية تعديل هذا الحساب أو أنه خارج نطاق فرعك.');
                     return;
                 }
-                if (username !== previous.username) {
-                    alert('اسم المستخدم مرتبط ببريد تسجيل الدخول في Firebase، ولا يمكن تغييره من هذه الواجهة.');
+                if (password && password.length < 6) {
+                    alert('كلمة المرور يجب ألا تقل عن 6 أحرف.');
                     return;
                 }
-                if (password) {
-                    alert('لا يمكن تغيير كلمة مرور مستخدم آخر من المتصفح. استخدم طلب الاستعادة، ثم أعد تعيينها يدوياً في Firebase Console.');
+                if (username.toLowerCase() === USER_ACCOUNT_MANAGER) {
+                    alert('اسم المستخدم المحمي لا يمكن استخدامه لحساب آخر.');
                     return;
                 }
                 users[idx] = {
                     ...previous,
                     fullName: previous.uid === currentUser.uid ? previous.fullName : (previous.fullName || username),
+                    username,
                     role,
                     branch,
+                    phone,
                     authEnabled: true
                 };
 
                 try {
+                    if (username !== previous.username || password) {
+                        const updateCredentials = httpsCallable(firebaseFunctions, 'updateManagedUserCredentials');
+                        await updateCredentials({
+                            targetUid: previous.uid,
+                            username,
+                            ...(password ? { password } : {})
+                        });
+                    }
                     const saved = await saveCloudUsers(users);
                     if (!saved) throw new Error('لم يقبل Firebase حفظ التغييرات.');
                     await writeUserAuditLog('UPDATE_PERMISSIONS', username, {
@@ -8958,6 +9007,7 @@ Status: Payment Received - Pending Approval`,
                 }
                 document.getElementById('userEditOriginalName').value = u.username;
                 document.getElementById('manageUsername').value = u.username;
+                document.getElementById('managePhone').value = u.phone || '';
                 document.getElementById('manageRole').value = u.role || 'موظف';
                 applyUserManagementRoleScope();
                 populateManagedBranchSelect(u.branch || 'فرع عجمان');
@@ -9161,6 +9211,7 @@ Status: Payment Received - Pending Approval`,
                 tbody.innerHTML = '';
                 if (!canManageSystemUsers()) return;
                 const users = [...cloudUsers]
+                    .filter(user => String(user.username || '').trim().toLowerCase() !== USER_ACCOUNT_MANAGER)
                     .filter(isUserInManagerScope)
                     .sort((first, second) =>
                         getUserRoleRank(first.role) - getUserRoleRank(second.role)

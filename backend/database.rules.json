@@ -21,14 +21,6 @@
       "$logId": {
         ".write": "auth != null && root.child('users').child(auth.uid).child('active').val() === true && !data.exists() && newData.child('uid').val() === auth.uid"
       }
-    },
-    "passwordResetRequests": {
-      ".read": "auth != null && root.child('users').child(auth.uid).child('active').val() === true && root.child('users').child(auth.uid).child('username').val() === 'mahmoud.abdulkarim'",
-      ".write": false,
-      "$requestId": {
-        ".write": "auth != null && root.child('users').child(auth.uid).child('active').val() === true && root.child('users').child(auth.uid).child('username').val() === 'mahmoud.abdulkarim'",
-        ".validate": "!newData.exists() || (newData.hasChildren(['username', 'phone', 'branch', 'status', 'requestedAt']) && newData.child('username').isString() && newData.child('username').val().length <= 60 && newData.child('phone').isString() && newData.child('phone').val().length <= 80 && newData.child('branch').isString() && newData.child('status').isString() && (newData.child('status').val() === 'pending' || newData.child('status').val() === 'approved' || newData.child('status').val() === 'rejected' || newData.child('status').val() === 'processing' || newData.child('status').val() === 'completed') && newData.child('requestedAt').isNumber())"
-      }
     }
   }
 }

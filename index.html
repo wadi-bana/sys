@@ -924,50 +924,9 @@
                     <div class="text-gold text-3xl mb-2"><i class="fa-solid fa-key"></i></div>
                     <h3 id="recoveryTitle" class="text-gold font-extrabold">استعادة كلمة المرور</h3>
                     <p id="recoveryDescription" class="text-zinc-400 text-xs mt-2 leading-6">
-                        أدخل رقم الهاتف المسجل وكلمة المرور الجديدة. عند تطابق الرقم سيتم التغيير مباشرة، وإلا يُرسل طلب للإدارة.
+                        استعادة كلمة المرور متاحة من Firebase Console فقط على الخطة المجانية الحالية.
                     </p>
                 </div>
-                <p id="passwordRecoveryStatus" class="hidden mb-3 rounded-lg border border-gold/30 bg-zinc-900 p-3 text-xs leading-6 text-zinc-200"
-                    role="status" aria-live="polite"></p>
-                <form id="passwordResetRequestForm" onsubmit="handlePasswordResetRequest(event)" class="space-y-3">
-                    <div>
-                        <label id="recoveryUsernameLabel" for="recoveryUsername" class="block text-xs font-bold text-zinc-300 mb-2">اسم المستخدم / الموظف</label>
-                        <input id="recoveryUsername" type="text" required autocomplete="username"
-                            class="w-full bg-darkbg border border-zinc-700 rounded-xl px-4 py-3 text-sm text-zinc-100 outline-none"
-                            placeholder="اسم المستخدم المسجل">
-                    </div>
-                    <div>
-                        <label id="recoveryPhoneLabel" for="recoveryPhone" class="block text-xs font-bold text-zinc-300 mb-2">رقم الهاتف للتواصل والتحقق</label>
-                        <input id="recoveryPhone" type="tel" required inputmode="tel" autocomplete="tel"
-                            class="w-full bg-darkbg border border-zinc-700 rounded-xl px-4 py-3 text-sm text-zinc-100 outline-none"
-                            placeholder="رقم الهاتف / واتساب">
-                    </div>
-                    <div>
-                        <label id="recoveryNewPasswordLabel" for="recoveryNewPassword" class="block text-xs font-bold text-zinc-300 mb-2">كلمة المرور الجديدة</label>
-                        <input id="recoveryNewPassword" type="password" required minlength="6" autocomplete="new-password"
-                            class="w-full bg-darkbg border border-zinc-700 rounded-xl px-4 py-3 text-sm text-zinc-100 outline-none"
-                            placeholder="6 أحرف على الأقل">
-                    </div>
-                    <div>
-                        <label id="recoveryBranchLabel" for="recoveryBranch" class="block text-xs font-bold text-zinc-300 mb-2">الفرع</label>
-                        <select id="recoveryBranch" required
-                            class="w-full bg-darkbg border border-zinc-700 rounded-xl px-4 py-3 text-sm text-zinc-100 outline-none">
-                            <option id="recoveryBranchAjman" value="ajman">فرع عجمان</option>
-                            <option id="recoveryBranchAbuDhabi" value="abudhabi">فرع أبوظبي</option>
-                            <option id="recoveryBranchOman" value="muscat">فرع عمان</option>
-                            <option id="recoveryBranchYemen" value="yemen">فرع اليمن</option>
-                            <option id="recoveryBranchGeneral" value="all">الإدارة العامة</option>
-                        </select>
-                    </div>
-                    <button id="submitPasswordResetRequest" type="submit"
-                        class="w-full gold-gradient-bg text-black font-extrabold py-3 rounded-xl shadow-lg transition">
-                        <i class="fa-solid fa-paper-plane ml-1"></i> إرسال طلب الاستعادة
-                    </button>
-                </form>
-                <button id="newPasswordResetRequestBtn" type="button" onclick="startNewPasswordResetRequest()"
-                    class="hidden w-full mt-3 text-sm text-gold underline underline-offset-4">
-                    إرسال طلب جديد
-                </button>
                 <button id="backToLoginBtn" type="button" onclick="showLoginView()"
                     class="w-full mt-3 text-sm text-zinc-400 underline underline-offset-4">
                     العودة إلى تسجيل الدخول
@@ -3411,22 +3370,14 @@
                             <span id="managerPortalIdentityLabel" class="font-bold text-gold">تم التعرف على الحساب:</span>
                             <span id="managerPortalIdentityText"></span>
                         </div>
-
-                        <div id="passwordResetRequestsPanel" class="bg-darkbg p-4 rounded-xl border border-gold/40 space-y-3">
-                            <h4 class="text-gold font-bold text-sm">
-                                <i class="fa-solid fa-bell ml-1"></i>
-                                <span id="passwordResetRequestsTitle">طلبات استعادة كلمة المرور</span>
-                                <span id="passwordResetRequestCount" class="mr-1 rounded-full bg-gold px-2 py-0.5 text-xs text-black">0</span>
-                            </h4>
-                            <div id="passwordResetRequestsList" class="space-y-3">
-                                <p id="passwordResetRequestsEmpty" class="text-xs text-zinc-400">لا توجد طلبات استعادة حالياً.</p>
-                            </div>
-                        </div>
+                        <p class="rounded-xl border border-amber-500/30 bg-amber-950/20 p-3 text-xs leading-6 text-amber-100">
+                            ضمن Firebase Spark يمكن تعديل بيانات الملف وإيقاف الحساب من هنا. تغيير اسم الدخول أو كلمة مرور مستخدم آخر أو حذف حسابه يتم يدوياً من Firebase Console؛ يمكن للمستخدم تغيير كلمة مروره بنفسه بعد تسجيل الدخول.
+                        </p>
 
                         <form id="userForm" onsubmit="handleSaveUser(event)"
                             class="bg-darkbg p-4 rounded-xl border border-zinc-800 space-y-3">
                             <input type="hidden" id="userEditOriginalName" value="">
-                            <div class="grid grid-cols-1 sm:grid-cols-5 gap-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-6 gap-3">
                                 <div>
                                     <label class="block text-xs text-zinc-400 mb-1 font-bold">اسم المستخدم</label>
                                     <input type="text" id="manageUsername" required maxlength="60"
@@ -3435,7 +3386,13 @@
                                         placeholder="اسم المستخدم">
                                 </div>
                                 <div>
-                                    <label class="block text-xs text-zinc-400 mb-1 font-bold">كلمة المرور (اتركها فارغة دون تغيير)</label>
+                                    <label class="block text-xs text-zinc-400 mb-1 font-bold">الاسم الكامل</label>
+                                    <input type="text" id="manageFullName" maxlength="120"
+                                        class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-xs text-zinc-100"
+                                        placeholder="الاسم الكامل">
+                                </div>
+                                <div>
+                                    <label id="managePasswordLabel" class="block text-xs text-zinc-400 mb-1 font-bold">كلمة المرور (للحساب الجديد فقط)</label>
                                     <input type="password" id="managePassword" minlength="6"
                                         class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-xs text-zinc-100"
                                         placeholder="مطلوبة عند إنشاء حساب">
@@ -3524,7 +3481,6 @@
                 signOut,
                 updatePassword
             } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
-            import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-functions.js";
 
             const { jsPDF } = window.jspdf;
 
@@ -3534,7 +3490,6 @@
             let useFirebase = true;
             let rtdb = null;
             let firebaseAuth = null;
-            let firebaseFunctions = null;
             let userManagementAuthPromise = null;
             let firebaseInitError = null;
             try {
@@ -3546,7 +3501,6 @@
                 const app = initializeApp(firebaseConfig);
                 rtdb = getDatabase(app);
                 firebaseAuth = getAuth(app);
-                firebaseFunctions = getFunctions(app, 'asia-southeast1');
             } catch (e) {
                 console.error("Firebase initialization failed:", e);
                 firebaseInitError = e;
@@ -3558,9 +3512,6 @@
             let authActivationPromise = null;
             let currentLang = 'ar';
             let cloudUsers = [];
-            let passwordResetRequests = {};
-            let pendingPasswordResetNotificationIds = new Set();
-            let cloudUsersLoaded = false;
             let cloudDataLoaded = false;
             let cloudDataExists = false;
             let currentCargoAttachments = [];
@@ -3800,51 +3751,8 @@
                     managerLoginBackBtn: 'العودة لتسجيل دخول الموظف',
                     managerPortalIdentityLabel: 'تم التعرف على الحساب:',
                     recoveryTitle: 'استعادة كلمة المرور',
-                    recoveryDescription: 'أدخل رقم الهاتف المسجل وكلمة المرور الجديدة. عند تطابق الرقم سيتم التغيير مباشرة، وإلا يُرسل طلب للإدارة.',
-                    recoveryUsernameLabel: 'اسم المستخدم / الموظف',
-                    recoveryUsername: 'اسم المستخدم المسجل',
-                    recoveryPhoneLabel: 'رقم الهاتف للتواصل والتحقق',
-                    recoveryPhone: 'رقم الهاتف / واتساب',
-                    recoveryNewPasswordLabel: 'كلمة المرور الجديدة',
-                    recoveryNewPassword: '6 أحرف على الأقل',
-                    recoveryBranchLabel: 'الفرع',
-                    recoveryBranchAjman: 'فرع عجمان',
-                    recoveryBranchAbuDhabi: 'فرع أبوظبي',
-                    recoveryBranchOman: 'فرع عمان',
-                    recoveryBranchYemen: 'فرع اليمن',
-                    recoveryBranchGeneral: 'الإدارة العامة',
-                    submitPasswordResetRequest: 'إرسال طلب الاستعادة',
-                    newRecoveryPasswordLabel: 'كلمة المرور الجديدة',
-                    confirmRecoveryPasswordLabel: 'تأكيد كلمة المرور',
-                    submitApprovedPasswordReset: 'تعيين كلمة المرور الجديدة',
-                    newPasswordResetRequestBtn: 'إرسال طلب جديد',
+                    recoveryDescription: 'استعادة كلمة المرور لحسابات الدخول باسم المستخدم تتم يدوياً من Firebase Console ضمن الخطة المجانية. تواصل مع مسؤول النظام.',
                     backToLoginBtn: 'العودة إلى تسجيل الدخول',
-                    resetRequestPending: 'لم يتطابق رقم الهاتف مع الرقم المسجل؛ أُرسل طلبك للإدارة للمراجعة.',
-                    resetRequestApproved: 'تم تغيير كلمة المرور مباشرة بعد مطابقة رقم الهاتف. يمكنك تسجيل الدخول بكلمة المرور الجديدة.',
-                    resetRequestRejected: 'تعذر اعتماد الطلب. تواصل مع المدير العام للتحقق من بياناتك.',
-                    resetRequestCompleted: 'تمت معالجة الطلب. تواصل مع المدير إذا كنت تحتاج كلمة مرور مؤقتة.',
-                    resetRequestMissing: 'تعذر العثور على طلب الاستعادة. أرسل طلباً جديداً أو تواصل مع المدير.',
-                    resetRequestError: 'تعذر إرسال الطلب أو تحديثه. تحقق من الاتصال ثم حاول مجدداً.',
-                    resetPhoneInvalid: 'أدخل اسم المستخدم ورقم هاتف صحيحاً للتواصل والتحقق.',
-                    resetPasswordInvalid: 'كلمة المرور الجديدة يجب ألا تقل عن 6 أحرف.',
-                    resetConnectionError: 'تعذر الاتصال بالنظام حالياً. تواصل مع المدير العام.',
-                    resetPasswordMismatch: 'كلمتا المرور غير متطابقتين.',
-                    resetPasswordTooShort: 'كلمة المرور يجب ألا تقل عن 6 أحرف أو أرقام.',
-                    resetWaitForUsers: 'انتظر حتى يكتمل تحميل حسابات المستخدمين قبل الموافقة.',
-                    resetAlreadyProcessed: 'تمت معالجة هذا الطلب مسبقاً.',
-                    resetApprovalConfirm: 'هل تحققت من هوية الموظف ورقم التواصل قبل الموافقة؟',
-                    resetReviewError: 'تعذر تحديث طلب استعادة كلمة المرور.',
-                    passwordResetRequestsTitle: 'طلبات استعادة كلمة المرور',
-                    passwordResetRequestsEmpty: 'لا توجد طلبات استعادة حالياً.',
-                    passwordResetRequestAlert: 'تنبيه: وصل طلب استعادة كلمة مرور للموظف',
-                    passwordResetRequestVerify: 'تحقق من هوية الموظف ورقم الهاتف قبل الموافقة.',
-                    passwordResetRequestApprove: 'موافقة',
-                    passwordResetRequestReject: 'رفض',
-                    passwordResetRequestPendingLabel: 'بانتظار الموافقة',
-                    passwordResetRequestApprovedLabel: 'تمت الموافقة',
-                    passwordResetRequestRejectedLabel: 'مرفوض',
-                    passwordResetRequestCompletedLabel: 'اكتملت الاستعادة',
-                    passwordResetRequestNoUser: 'لا يوجد حساب نشط مطابق لهذا الاسم.',
                     headTitle: 'شركة وادي بناء للنقل الدولي', headSub: 'النظام الموحد الشامل (Firebase v13.2.0)',
                     btnBackup: 'نسخة JSON', btnBackupPDF: 'نسخة احتياطية PDF', btnRestore: 'استرجاع JSON', btnRestorePDF: 'استعادة من PDF', btnLogout: 'خروج',
                     tDashboard: 'لوحة التحكم', tPassengers: 'التذاكر والركاب', tCargo: 'فواتير الشحن', tFin: 'الإدارة المالية',
@@ -3870,50 +3778,8 @@
                     managerLoginBackBtn: 'Back to employee sign-in',
                     managerPortalIdentityLabel: 'Account identified:',
                     recoveryTitle: 'Password recovery',
-                    recoveryDescription: 'Enter the registered phone number and a new password. A matching number changes it immediately; otherwise, a request is sent to management.',
-                    recoveryUsernameLabel: 'Username / employee',
-                    recoveryUsername: 'Registered username',
-                    recoveryPhoneLabel: 'Phone number for contact and verification',
-                    recoveryPhone: 'Phone / WhatsApp number',
-                    recoveryNewPasswordLabel: 'New password',
-                    recoveryNewPassword: 'At least 6 characters',
-                    recoveryBranchLabel: 'Branch',
-                    recoveryBranchAjman: 'Ajman branch',
-                    recoveryBranchAbuDhabi: 'Abu Dhabi branch',
-                    recoveryBranchOman: 'Oman branch',
-                    recoveryBranchYemen: 'Yemen branch',
-                    recoveryBranchGeneral: 'General management',
-                    submitPasswordResetRequest: 'Send recovery request',
-                    newRecoveryPasswordLabel: 'New password',
-                    confirmRecoveryPasswordLabel: 'Confirm password',
-                    submitApprovedPasswordReset: 'Set new password',
-                    newPasswordResetRequestBtn: 'Send a new request',
+                    recoveryDescription: 'Accounts using username sign-in require a manual password reset in Firebase Console on the free plan. Contact the system administrator.',
                     backToLoginBtn: 'Back to sign in',
-                    resetRequestPending: 'The phone number did not match the registered number; your request was sent to management for review.',
-                    resetRequestApproved: 'Your password was changed immediately after the phone number matched. You can now sign in with the new password.',
-                    resetRequestRejected: 'The request was not approved. Contact the general manager to verify your details.',
-                    resetRequestCompleted: 'The request was processed. Contact a manager if you need a temporary password.',
-                    resetRequestMissing: 'The recovery request could not be found. Send a new request or contact a manager.',
-                    resetRequestError: 'The request could not be sent or updated. Check your connection and try again.',
-                    resetPhoneInvalid: 'Enter the username and a valid phone number for contact and verification.',
-                    resetPasswordInvalid: 'The new password must be at least 6 characters.',
-                    resetConnectionError: 'The system is currently unavailable. Contact the general manager.',
-                    resetPasswordMismatch: 'The passwords do not match.',
-                    resetPasswordTooShort: 'Password must be at least 6 characters.',
-                    resetWaitForUsers: 'Wait until user accounts finish loading before approving.',
-                    resetAlreadyProcessed: 'This request has already been processed.',
-                    resetApprovalConfirm: 'Have you verified the employee identity and contact number before approval?',
-                    resetReviewError: 'The recovery request could not be updated.',
-                    passwordResetRequestsTitle: 'Password recovery requests',
-                    passwordResetRequestsEmpty: 'There are no recovery requests.',
-                    passwordResetRequestAlert: 'Alert: password recovery request from',
-                    passwordResetRequestVerify: 'Verify the employee identity and phone number before approving.',
-                    passwordResetRequestApprove: 'Approve',
-                    passwordResetRequestReject: 'Reject',
-                    passwordResetRequestPendingLabel: 'Pending approval',
-                    passwordResetRequestApprovedLabel: 'Approved',
-                    passwordResetRequestRejectedLabel: 'Rejected',
-                    passwordResetRequestCompletedLabel: 'Recovery completed',
                     passwordResetRequestNoUser: 'No active account matches this username.',
                     headTitle: 'Wadi Bina Overland Transport', headSub: 'Comprehensive Unified System (Firebase v13.2.0)',
                     btnBackup: 'JSON Backup', btnBackupPDF: 'PDF Backup', btnRestore: 'Restore JSON', btnRestorePDF: 'Restore PDF', btnLogout: 'Logout',
@@ -3967,15 +3833,7 @@
             }
 
             function canManageUserTarget(user) {
-                if (!canManageSystemUsers() || !user || user.uid === activeAuthUid) return false;
-                if (String(user.username || '').trim().toLowerCase() === USER_ACCOUNT_MANAGER) return false;
-                if (String(currentUser.username || '').trim().toLowerCase() === USER_ACCOUNT_MANAGER) return true;
-                if (currentUser.role === 'مالك') return true;
-                if (user.role === 'مالك' || !isUserInManagerScope(user)) return false;
-                const managerRank = getUserRoleRank(currentUser.role);
-                const targetRank = getUserRoleRank(user.role);
-                if (isFullSystemUserManager()) return targetRank >= managerRank;
-                return targetRank > managerRank;
+                return Boolean(canManageSystemUsers() && user?.uid && user.uid !== activeAuthUid);
             }
 
             function canAssignUserRole(role) {
@@ -4166,7 +4024,6 @@
                 }
                 document.getElementById('langToggleBtn').innerHTML = currentLang === 'ar' ? '<i class="fa-solid fa-globe"></i> English' : '<i class="fa-solid fa-globe"></i> العربية';
                 refreshUI();
-                renderPasswordResetRequests();
             }
 
             async function activateAuthenticatedUser(profileUid) {
@@ -4409,25 +4266,12 @@
                 return translations[currentLang][key] || translations.ar[key] || key;
             }
 
-            function setPasswordRecoveryStatus(message, isError = false) {
-                const status = document.getElementById('passwordRecoveryStatus');
-                status.textContent = message;
-                status.classList.remove('hidden', 'text-red-300', 'text-zinc-200');
-                status.classList.add(isError ? 'text-red-300' : 'text-zinc-200');
-            }
-
             function showPasswordRecoveryView() {
                 document.getElementById('loginHeader').classList.add('hidden');
                 document.getElementById('loginForm').classList.add('hidden');
                 document.getElementById('managerLoginView').classList.add('hidden');
                 document.getElementById('passwordRecoveryView').classList.remove('hidden');
                 document.getElementById('forgotPasswordBtn').setAttribute('aria-expanded', 'true');
-                const requestId = sessionStorage.getItem('wadiBanaPasswordResetRequestId');
-                if (requestId) {
-                    document.getElementById('passwordResetRequestForm').classList.add('hidden');
-                    setPasswordRecoveryStatus(recoveryText('resetRequestPending'));
-                    document.getElementById('newPasswordResetRequestBtn').classList.remove('hidden');
-                }
             }
 
             function showManagerLoginView() {
@@ -4446,67 +4290,6 @@
                 document.getElementById('loginHeader').classList.remove('hidden');
                 document.getElementById('loginForm').classList.remove('hidden');
                 document.getElementById('forgotPasswordBtn').setAttribute('aria-expanded', 'false');
-            }
-
-            async function handlePasswordResetRequest(e) {
-                e.preventDefault();
-                if (!useFirebase || !rtdb) {
-                    setPasswordRecoveryStatus(recoveryText('resetConnectionError'), true);
-                    return;
-                }
-
-                const username = document.getElementById('recoveryUsername').value.trim();
-                const phone = document.getElementById('recoveryPhone').value.trim();
-                const phoneDigits = phone.replace(/\D/g, '');
-                const branch = document.getElementById('recoveryBranch').value;
-                const password = document.getElementById('recoveryNewPassword').value;
-                if (!username || phoneDigits.length < 7) {
-                    setPasswordRecoveryStatus(recoveryText('resetPhoneInvalid'), true);
-                    return;
-                }
-                if (password.length < 6) {
-                    setPasswordRecoveryStatus(recoveryText('resetPasswordInvalid'), true);
-                    return;
-                }
-
-                const submitButton = document.getElementById('submitPasswordResetRequest');
-                submitButton.disabled = true;
-                try {
-                    const recoverPassword = httpsCallable(firebaseFunctions, 'recoverPasswordByPhone');
-                    const result = await recoverPassword({
-                        username,
-                        phone,
-                        branch,
-                        password
-                    });
-                    const { completed, requestId } = result.data || {};
-                    document.getElementById('recoveryNewPassword').value = '';
-                    document.getElementById('passwordResetRequestForm').classList.add('hidden');
-                    if (completed) {
-                        sessionStorage.removeItem('wadiBanaPasswordResetRequestId');
-                        setPasswordRecoveryStatus(recoveryText('resetRequestApproved'));
-                        document.getElementById('newPasswordResetRequestBtn').classList.add('hidden');
-                    } else if (requestId) {
-                        sessionStorage.setItem('wadiBanaPasswordResetRequestId', requestId);
-                        setPasswordRecoveryStatus(recoveryText('resetRequestPending'));
-                        document.getElementById('newPasswordResetRequestBtn').classList.remove('hidden');
-                    } else {
-                        throw new Error('تعذر إنشاء طلب استعادة كلمة المرور.');
-                    }
-                } catch (error) {
-                    console.error('Password recovery request submission failed:', error);
-                    setPasswordRecoveryStatus(recoveryText('resetRequestError'), true);
-                } finally {
-                    submitButton.disabled = false;
-                }
-            }
-
-            function startNewPasswordResetRequest() {
-                sessionStorage.removeItem('wadiBanaPasswordResetRequestId');
-                document.getElementById('passwordResetRequestForm').reset();
-                document.getElementById('passwordResetRequestForm').classList.remove('hidden');
-                document.getElementById('newPasswordResetRequestBtn').classList.add('hidden');
-                document.getElementById('passwordRecoveryStatus').classList.add('hidden');
             }
 
             async function handleUserChangePassword(e) {
@@ -4684,7 +4467,6 @@
                 if (!Object.keys(profileUpdates).length) return Promise.resolve(true);
                 return update(ref(rtdb, 'users'), profileUpdates)
                     .then(() => {
-                        cloudUsersLoaded = true;
                         return true;
                     })
                     .catch(error => {
@@ -4852,39 +4634,13 @@
                         const value = snapshot.val() || {};
                         cloudUsers = Object.entries(value)
                             .map(([uid, profile]) => normalizeUserProfile(profile, uid));
-                        cloudUsersLoaded = true;
-                        renderPasswordResetRequests();
-                        if (pendingPasswordResetNotificationIds.size) {
-                            notifyPendingPasswordResetRequests([...pendingPasswordResetNotificationIds]);
-                            pendingPasswordResetNotificationIds.clear();
-                        }
                         if (currentTab === 'users') renderUsersTable();
                     }, error => {
                         reportFirebaseSyncError('تعذر تحميل ملفات المستخدمين. تحقق من قواعد users في Firebase.', error);
                     }));
 
-                    syncUnsubscribers.push(onValue(ref(rtdb, 'passwordResetRequests'), snapshot => {
-                        const previousRequests = passwordResetRequests;
-                        passwordResetRequests = snapshot.val() || {};
-                        const newPendingRequests = Object.entries(passwordResetRequests).filter(([requestId, request]) =>
-                            request?.status === 'pending' && previousRequests[requestId]?.status !== 'pending'
-                        );
-                        renderPasswordResetRequests();
-                        if (newPendingRequests.length) {
-                            newPendingRequests.forEach(([requestId]) => pendingPasswordResetNotificationIds.add(requestId));
-                            if (cloudUsersLoaded) {
-                                notifyPendingPasswordResetRequests([...pendingPasswordResetNotificationIds]);
-                                pendingPasswordResetNotificationIds.clear();
-                            }
-                        }
-                    }, error => {
-                        console.error('Password recovery requests listener failed:', error);
-                        const list = document.getElementById('passwordResetRequestsList');
-                        list.textContent = 'تعذر تحميل طلبات الاستعادة. تحقق من صلاحيات قاعدة البيانات.';
-                    }));
                 } else {
                     cloudUsers = [];
-                    cloudUsersLoaded = true;
                 }
 
                 syncUnsubscribers.push(onValue(ref(rtdb, 'systemUnifiedData'), snapshot => {
@@ -4990,7 +4746,7 @@
                 'exportSystemBackupPDF', 'exportToPDF', 'exportTransitCSV', 'exportTransitExcel',
                 'getCargoFileName', 'getDebtFileName', 'getTicketFileName',
                 'handleCargoImagesSelect', 'handleGlobalSearch', 'handleLogin',
-                'handleManagerPortalLogin', 'handlePasswordResetRequest',
+                'handleManagerPortalLogin',
                 'handleLogout', 'handleSaveAdvance', 'handleSaveBus', 'handleSaveCargo',
                 'handleSaveDebtInvoice', 'handleSaveDriverAccount', 'handleSaveEmployee',
                 'handleSavePassenger', 'handleSaveTransit', 'handleSaveTrip', 'handleSaveUser',
@@ -5008,7 +4764,7 @@
                 'resetCargoForm', 'resetDriverForm', 'resetEmployeeForm', 'resetGlobalSearch',
                 'resetPassengerForm', 'resetTransitForm', 'resetTripForm', 'resetUserForm',
                 'sendCargoReceiverWhatsApp', 'sendTripReminderWhatsApp',
-                'showLoginView', 'showManagerLoginView', 'showPasswordRecoveryView', 'startNewPasswordResetRequest',
+                'showLoginView', 'showManagerLoginView', 'showPasswordRecoveryView',
                 'switchFinancialSubTab', 'switchTab', 'switchTripDetailsBranch',
                 'toggleDeviceLayoutMode', 'toggleLanguage', 'toggleManualTransitForm',
                 'toggleSidebar', 'updateReportingTimeAutomatically'
@@ -8865,7 +8621,9 @@ Status: Payment Received - Pending Approval`,
                 if (!canManageSystemUsers()) { alert('لا تملك صلاحية إدارة الحسابات.'); return; }
                 const origName = document.getElementById('userEditOriginalName').value;
                 const username = document.getElementById('manageUsername').value.trim().toLowerCase();
-                const password = document.getElementById('managePassword')?.value || '';
+                const fullName = document.getElementById('manageFullName').value.trim() || username;
+                const passwordInput = document.getElementById('managePassword');
+                const password = passwordInput?.value || '';
                 const phone = document.getElementById('managePhone').value.trim();
                 const role = document.getElementById('manageRole').value;
                 let branch = document.getElementById('manageBranch').value;
@@ -8906,7 +8664,7 @@ Status: Payment Received - Pending Approval`,
                         const users = [...cloudUsers, {
                             uid: createdAuthUser.uid,
                             username,
-                            fullName: username,
+                            fullName,
                             role,
                             branch,
                             active: true,
@@ -8955,18 +8713,17 @@ Status: Payment Received - Pending Approval`,
                     alert('لا تملك صلاحية تعديل هذا الحساب أو أنه خارج نطاق فرعك.');
                     return;
                 }
-                if (password && password.length < 6) {
-                    alert('كلمة المرور يجب ألا تقل عن 6 أحرف.');
+                if (username !== String(previous.username || '').toLowerCase()) {
+                    alert('تغيير اسم الدخول يتطلب تعديله يدوياً في Firebase Console.');
                     return;
                 }
-                if (username.toLowerCase() === USER_ACCOUNT_MANAGER) {
-                    alert('اسم المستخدم المحمي لا يمكن استخدامه لحساب آخر.');
+                if (password) {
+                    alert('تغيير كلمة مرور مستخدم آخر غير متاح على الخطة المجانية؛ غيّرها يدوياً من Firebase Console.');
                     return;
                 }
                 users[idx] = {
                     ...previous,
-                    fullName: previous.uid === currentUser.uid ? previous.fullName : (previous.fullName || username),
-                    username,
+                    fullName,
                     role,
                     branch,
                     phone,
@@ -8974,14 +8731,6 @@ Status: Payment Received - Pending Approval`,
                 };
 
                 try {
-                    if (username !== previous.username || password) {
-                        const updateCredentials = httpsCallable(firebaseFunctions, 'updateManagedUserCredentials');
-                        await updateCredentials({
-                            targetUid: previous.uid,
-                            username,
-                            ...(password ? { password } : {})
-                        });
-                    }
                     const saved = await saveCloudUsers(users);
                     if (!saved) throw new Error('لم يقبل Firebase حفظ التغييرات.');
                     await writeUserAuditLog('UPDATE_PERMISSIONS', username, {
@@ -9007,7 +8756,12 @@ Status: Payment Received - Pending Approval`,
                 }
                 document.getElementById('userEditOriginalName').value = u.username;
                 document.getElementById('manageUsername').value = u.username;
+                document.getElementById('manageUsername').disabled = true;
+                document.getElementById('manageFullName').value = u.fullName || u.username;
                 document.getElementById('managePhone').value = u.phone || '';
+                document.getElementById('managePassword').value = '';
+                document.getElementById('managePassword').disabled = true;
+                document.getElementById('managePasswordLabel').textContent = 'تغيير كلمة المرور يتم من Firebase Console';
                 document.getElementById('manageRole').value = u.role || 'موظف';
                 applyUserManagementRoleScope();
                 populateManagedBranchSelect(u.branch || 'فرع عجمان');
@@ -9043,166 +8797,13 @@ Status: Payment Received - Pending Approval`,
             function resetUserForm() {
                 document.getElementById('userForm').reset();
                 document.getElementById('userEditOriginalName').value = '';
+                document.getElementById('manageUsername').disabled = false;
+                document.getElementById('managePassword').disabled = false;
+                document.getElementById('managePasswordLabel').textContent = 'كلمة المرور (للحساب الجديد فقط)';
+                document.getElementById('manageUsername').value = '';
                 document.getElementById('userSubmitBtn').innerText = 'حفظ ملف المستخدم';
                 applyUserManagementBranchScope();
                 applyUserManagementRoleScope();
-            }
-
-            function findPasswordResetTarget(request) {
-                return cloudUsers.find(user =>
-                    String(user.username).trim().toLocaleLowerCase('ar')
-                    === String(request?.username || '').trim().toLocaleLowerCase('ar')
-                );
-            }
-
-            function canReviewPasswordResetRequest(request) {
-                const target = findPasswordResetTarget(request);
-                return target ? canManageUserTarget(target) : isFullSystemUserManager();
-            }
-
-            function renderPasswordResetRequests() {
-                const list = document.getElementById('passwordResetRequestsList');
-                const count = document.getElementById('passwordResetRequestCount');
-                if (!list || !count || !canManageSystemUsers()) return;
-
-                const requests = Object.entries(passwordResetRequests || {})
-                    .filter(([, request]) => request && canReviewPasswordResetRequest(request))
-                    .sort(([, first], [, second]) => Number(second?.requestedAt || 0) - Number(first?.requestedAt || 0));
-                const pendingCount = requests.filter(([, request]) => request?.status === 'pending').length;
-                count.textContent = String(pendingCount);
-                list.replaceChildren();
-
-                if (!requests.length) {
-                    const empty = document.createElement('p');
-                    empty.id = 'passwordResetRequestsEmpty';
-                    empty.className = 'text-xs text-zinc-400';
-                    empty.textContent = recoveryText('passwordResetRequestsEmpty');
-                    list.appendChild(empty);
-                    return;
-                }
-
-                const statusLabels = {
-                    pending: ['passwordResetRequestPendingLabel', 'text-amber-300'],
-                    approved: ['passwordResetRequestApprovedLabel', 'text-emerald-300'],
-                    rejected: ['passwordResetRequestRejectedLabel', 'text-red-300'],
-                    completed: ['passwordResetRequestCompletedLabel', 'text-zinc-400']
-                };
-                requests.forEach(([requestId, request]) => {
-                    if (!request || typeof request !== 'object') return;
-                    const user = findPasswordResetTarget(request);
-                    const card = document.createElement('article');
-                    card.className = 'rounded-lg border border-zinc-700 p-3 space-y-2';
-
-                    const heading = document.createElement('div');
-                    heading.className = 'flex flex-wrap items-center justify-between gap-2';
-                    const name = document.createElement('strong');
-                    name.className = 'text-sm text-zinc-100';
-                    name.textContent = `${user?.fullName || request.username || 'اسم غير متوفر'} (${request.username || '—'})`;
-                    const [statusKey, statusColor] = statusLabels[request.status] || ['passwordResetRequestPendingLabel', 'text-zinc-400'];
-                    const status = document.createElement('span');
-                    status.className = `text-xs font-bold ${statusColor}`;
-                    status.textContent = recoveryText(statusKey);
-                    heading.append(name, status);
-
-                    const details = document.createElement('p');
-                    details.className = 'text-xs leading-6 text-zinc-300';
-                    const requestedBranch = FIREBASE_BRANCH_LABELS[request.branch] || request.branch || '—';
-                    const accountBranch = user?.branch || '—';
-                    const requestedAt = Number(request.requestedAt);
-                    const dateText = requestedAt
-                        ? new Date(requestedAt).toLocaleString(currentLang === 'ar' ? 'ar-AE' : 'en-AE')
-                        : '—';
-                    details.textContent = `${currentLang === 'ar' ? 'الهاتف' : 'Phone'}: ${request.phone || '—'} | ${currentLang === 'ar' ? 'الفرع المذكور' : 'Claimed branch'}: ${requestedBranch} | ${currentLang === 'ar' ? 'الفرع المسجل' : 'Account branch'}: ${accountBranch} | ${dateText}`;
-                    card.append(heading, details);
-
-                    if (request.status === 'pending') {
-                        const actions = document.createElement('div');
-                        actions.className = 'flex gap-2';
-                        const approveButton = document.createElement('button');
-                        approveButton.type = 'button';
-                        approveButton.className = 'gold-gradient-bg text-black px-3 py-1.5 rounded text-xs font-bold';
-                        approveButton.textContent = recoveryText('passwordResetRequestApprove');
-                        approveButton.addEventListener('click', () => reviewPasswordResetRequest(requestId, true));
-                        const rejectButton = document.createElement('button');
-                        rejectButton.type = 'button';
-                        rejectButton.className = 'bg-red-900 text-white px-3 py-1.5 rounded text-xs font-bold';
-                        rejectButton.textContent = recoveryText('passwordResetRequestReject');
-                        rejectButton.addEventListener('click', () => reviewPasswordResetRequest(requestId, false));
-                        actions.append(approveButton, rejectButton);
-                        card.appendChild(actions);
-                    }
-                    list.appendChild(card);
-                });
-            }
-
-            function notifyPendingPasswordResetRequests(requestIds) {
-                const requesterNames = requestIds.map(requestId => {
-                    const request = passwordResetRequests[requestId];
-                    if (!request || !canReviewPasswordResetRequest(request)) return null;
-                    const target = findPasswordResetTarget(request);
-                    return target?.fullName || request?.username || 'موظف غير معروف';
-                }).filter(Boolean);
-                if (requesterNames.length) {
-                    alert(`${recoveryText('passwordResetRequestAlert')}: ${requesterNames.join('، ')}\n${recoveryText('passwordResetRequestVerify')}`);
-                }
-            }
-
-            async function reviewPasswordResetRequest(requestId, approve) {
-                if (!canManageSystemUsers()) return;
-                if (approve && !cloudUsersLoaded) {
-                    alert(recoveryText('resetWaitForUsers'));
-                    return;
-                }
-
-                try {
-                    const requestPath = `passwordResetRequests/${requestId}`;
-                    const requestSnapshot = await get(ref(rtdb, requestPath));
-                    const request = requestSnapshot.val();
-                    if (!request || request.status !== 'pending') {
-                        alert(recoveryText('resetAlreadyProcessed'));
-                        return;
-                    }
-
-                    const target = findPasswordResetTarget(request);
-                    if (!canReviewPasswordResetRequest(request)) {
-                        alert('لا تملك صلاحية مراجعة هذا الطلب أو أن الحساب خارج نطاق فرعك.');
-                        return;
-                    }
-                    if (approve && (!target || target.active !== true)) {
-                        alert(recoveryText('passwordResetRequestNoUser'));
-                        return;
-                    }
-
-                    if (approve) {
-                        const prompt = currentLang === 'ar'
-                            ? `${recoveryText('resetApprovalConfirm')}\n${request.phone || 'رقم غير متوفر'}`
-                            : `${recoveryText('resetApprovalConfirm')}\n${request.phone || 'Phone not provided'}`;
-                        if (!confirm(prompt)) return;
-                    } else if (!confirm(currentLang === 'ar' ? 'هل تريد رفض طلب استعادة كلمة المرور؟' : 'Reject this password recovery request?')) {
-                        return;
-                    }
-
-                    const approvedAt = Date.now();
-                    await update(ref(rtdb, requestPath), approve ? {
-                        status: 'approved',
-                        targetUid: target.uid,
-                        approvedBy: currentUser.username,
-                        approvedAt
-                    } : {
-                        status: 'rejected',
-                        reviewedBy: currentUser.username,
-                        reviewedAt: approvedAt
-                    });
-                    await writeUserAuditLog(
-                        approve ? 'APPROVE_PASSWORD_RESET' : 'REJECT_PASSWORD_RESET',
-                        request.username || '',
-                        { requestId, phone: request.phone || null }
-                    );
-                    renderPasswordResetRequests();
-                } catch (error) {
-                    console.error('Password recovery review failed:', error);
-                    alert(error.message || recoveryText('resetReviewError'));
-                }
             }
 
             function renderUsersTable() {
@@ -9211,7 +8812,6 @@ Status: Payment Received - Pending Approval`,
                 tbody.innerHTML = '';
                 if (!canManageSystemUsers()) return;
                 const users = [...cloudUsers]
-                    .filter(user => String(user.username || '').trim().toLowerCase() !== USER_ACCOUNT_MANAGER)
                     .filter(isUserInManagerScope)
                     .sort((first, second) =>
                         getUserRoleRank(first.role) - getUserRoleRank(second.role)
@@ -9221,10 +8821,8 @@ Status: Payment Received - Pending Approval`,
                         )
                     );
                 users.forEach(u => {
-                    if (u.role === 'مالك' && u.hidden && currentUser.role !== 'مالك') return;
-                    const canEditTarget = canManageUserTarget(u)
-                        && u.uid !== currentUser.uid
-                        && u.username !== currentUser.username;
+                    const isCurrentAccount = u.uid === activeAuthUid;
+                    const canEditTarget = canManageUserTarget(u);
                     const username = escapeUserTableValue(u.username);
                     const role = escapeUserTableValue(u.role);
                     const branch = escapeUserTableValue(u.branch || 'فرع عجمان');
@@ -9237,7 +8835,7 @@ Status: Payment Received - Pending Approval`,
                     <td class="space-x-1 space-x-reverse">
                         ${canEditTarget ? `
                         <button onclick="editUser(${usernameArg})" class="bg-amber-600 text-black px-2 py-1 rounded text-xs font-bold"><i class="fa-solid fa-pen"></i> تعديل</button>
-                        <button onclick="toggleUserActive(${usernameArg})" class="bg-zinc-700 text-zinc-100 px-2 py-1 rounded text-xs font-bold">${u.active === false ? 'تفعيل' : 'إيقاف الدخول'}</button>` : '<span class="text-zinc-500 text-xs">محمي</span>'}
+                        ${!isCurrentAccount ? `<button onclick="toggleUserActive(${usernameArg})" class="bg-zinc-700 text-zinc-100 px-2 py-1 rounded text-xs font-bold">${u.active === false ? 'تفعيل' : 'إيقاف الدخول'}</button>` : ''}` : '<span class="text-zinc-500 text-xs">محمي</span>'}
                     </td>
                 `;
                 });

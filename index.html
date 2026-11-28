@@ -843,6 +843,72 @@
             }
         }
     </style>
+    <style>
+        #documentRegisterTable {
+            min-width: 1280px;
+        }
+
+        #documentRegisterTable td {
+            vertical-align: middle;
+        }
+
+        #documentRegisterTable .register-secondary {
+            display: block;
+            margin-top: 3px;
+            color: #a1a1aa;
+            font-size: 0.68rem;
+            line-height: 1.45;
+            white-space: normal;
+        }
+
+        #documentRegisterTable .register-actions {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        #documentRegisterTable .register-action {
+            min-width: 30px;
+            min-height: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 4px 8px;
+            transition: transform 150ms ease, filter 150ms ease;
+        }
+
+        #documentRegisterTable .register-action:hover {
+            filter: brightness(1.2);
+            transform: translateY(-1px);
+        }
+
+        .document-register-filter label {
+            display: block;
+            margin-bottom: 6px;
+            color: #d6b451;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .document-register-filter select,
+        .document-register-filter input {
+            width: 100%;
+            min-height: 42px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            background: #0c0d0f;
+            padding: 9px 11px;
+            color: #f4f4f5;
+            font-size: 0.78rem;
+        }
+
+        @media (max-width: 640px) {
+            #documentRegisterTable {
+                min-width: 1120px;
+            }
+        }
+
+    </style>
 </head>
 
 <body class="bg-darkbg text-zinc-100 min-h-screen flex flex-col justify-between selection:bg-gold selection:text-black">
@@ -1690,6 +1756,12 @@
                 <button onclick="switchTab('cargo'); if(window.innerWidth < 1024) toggleSidebar();" id="tab-cargo"
                     class="tab-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-bold transition bg-zinc-800/80 text-zinc-300 hover:text-gold hover:bg-zinc-800 text-right">
                     <i class="fa-solid fa-boxes-packing text-base w-5 text-center"></i> <span>فواتير الشحن</span>
+                </button>
+                <button onclick="switchTab('documentRegister'); if(window.innerWidth < 1024) toggleSidebar();"
+                    id="tab-documentRegister"
+                    class="tab-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-bold transition bg-zinc-800/80 text-zinc-300 hover:text-gold hover:bg-zinc-800 text-right">
+                    <i class="fa-solid fa-rectangle-list text-base w-5 text-center"></i>
+                    <span>إدارة الشحنات والتذاكر</span>
                 </button>
                 <button onclick="switchTab('transit'); if(window.innerWidth < 1024) toggleSidebar();" id="tab-transit"
                     class="tab-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-bold transition bg-zinc-800/80 text-zinc-300 hover:text-gold hover:bg-zinc-800 text-right">
@@ -2702,6 +2774,161 @@
                                 </thead>
                                 <tbody></tbody>
                             </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- UNIFIED REGISTER: CREATED TICKETS AND CARGO INVOICES -->
+                <section id="module-documentRegister" class="tab-content hidden space-y-5">
+                    <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+                        <div>
+                            <div class="flex items-center gap-2 text-gold text-xs font-bold mb-2">
+                                <span class="w-8 h-px bg-gold/70"></span>
+                                <span>سجل المستندات المنشأة</span>
+                            </div>
+                            <h2 class="text-xl sm:text-2xl font-black text-zinc-100">إدارة الشحنات والتذاكر</h2>
+                            <p class="text-xs text-zinc-400 mt-1.5">ابحث عن التذاكر وفواتير الشحن المسموح لك بالاطلاع عليها، ثم افتح المستند أو عدّله من مساره المعتاد.</p>
+                        </div>
+                        <div class="flex items-center gap-2 text-[11px] text-zinc-400 bg-zinc-900/70 border border-zinc-800 rounded-xl px-3 py-2.5">
+                            <i class="fa-solid fa-shield-halved text-gold"></i>
+                            <span>تُطبق صلاحيات الفروع والرحلات كما في أقسام النظام</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <article class="bg-cardbg border border-bordergold rounded-2xl p-4 flex items-center justify-between gap-3">
+                            <div>
+                                <p class="text-[11px] text-zinc-400 font-bold">التذاكر المطابقة</p>
+                                <p id="documentRegisterTicketCount" class="text-2xl font-black text-zinc-100 mt-1">0</p>
+                            </div>
+                            <span class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-300 grid place-items-center"><i class="fa-solid fa-ticket"></i></span>
+                        </article>
+                        <article class="bg-cardbg border border-bordergold rounded-2xl p-4 flex items-center justify-between gap-3">
+                            <div>
+                                <p class="text-[11px] text-zinc-400 font-bold">فواتير الشحن المطابقة</p>
+                                <p id="documentRegisterCargoCount" class="text-2xl font-black text-zinc-100 mt-1">0</p>
+                            </div>
+                            <span class="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-300 grid place-items-center"><i class="fa-solid fa-boxes-packing"></i></span>
+                        </article>
+                        <article class="bg-cardbg border border-bordergold rounded-2xl p-4 flex items-center justify-between gap-3">
+                            <div>
+                                <p class="text-[11px] text-zinc-400 font-bold">إجمالي المبالغ المطابقة</p>
+                                <p id="documentRegisterAmount" class="text-xl font-black text-gold mt-1" dir="ltr">0 AED</p>
+                            </div>
+                            <span class="w-10 h-10 rounded-xl bg-gold/10 text-gold grid place-items-center"><i class="fa-solid fa-coins"></i></span>
+                        </article>
+                    </div>
+
+                    <div class="document-register-filter bg-cardbg border border-bordergold rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
+                        <div class="flex items-center justify-between gap-3 border-b border-zinc-800 pb-3">
+                            <h3 class="text-sm font-extrabold text-zinc-100 flex items-center gap-2">
+                                <i class="fa-solid fa-sliders text-gold"></i> تصفية السجل
+                            </h3>
+                            <span class="text-[10px] text-zinc-500">النتائج محصورة ضمن بياناتك المتاحة</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-7 gap-3">
+                            <div>
+                                <label for="documentRegisterType">نوع المستند</label>
+                                <select id="documentRegisterType" onchange="renderDocumentRegister()">
+                                    <option value="all">جميع المستندات</option>
+                                    <option value="ticket">تذاكر الركاب</option>
+                                    <option value="cargo">فواتير الشحن</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="documentRegisterBranch">الفرع</label>
+                                <select id="documentRegisterBranch" onchange="renderDocumentRegister()">
+                                    <option value="all">جميع الفروع المتاحة</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="documentRegisterPayment">حالة / طريقة السداد</label>
+                                <select id="documentRegisterPayment" onchange="renderDocumentRegister()">
+                                    <option value="all">كل الحالات</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="documentRegisterShipmentStatus">حالة الشحنة</label>
+                                <select id="documentRegisterShipmentStatus" onchange="renderDocumentRegister()">
+                                    <option value="all">جميع حالات الشحن</option>
+                                    <option value="جديد">جديد</option>
+                                    <option value="تم الشحن">تم الشحن</option>
+                                    <option value="في مكتب عدن">في مكتب عدن</option>
+                                    <option value="في مكتب عجمان">في مكتب عجمان</option>
+                                    <option value="في مكتب بني ياس">في مكتب بني ياس</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="documentRegisterDateFrom">من تاريخ</label>
+                                <input type="date" id="documentRegisterDateFrom" onchange="renderDocumentRegister()">
+                            </div>
+                            <div>
+                                <label for="documentRegisterDateTo">إلى تاريخ</label>
+                                <input type="date" id="documentRegisterDateTo" onchange="renderDocumentRegister()">
+                            </div>
+                            <div>
+                                <label for="documentRegisterSearch">بحث بالكلمة</label>
+                                <input type="search" id="documentRegisterSearch" oninput="renderDocumentRegister()"
+                                    placeholder="رقم مستند، اسم، هاتف، منطقة..." autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <p class="text-[11px] text-zinc-400">ابحث في رقم المستند أو اسم/هاتف المرسل والمستلم أو المنطقة؛ وللتذاكر في الرقم والراكب والهاتف والمسار.</p>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <button type="button" onclick="renderDocumentRegister()"
+                                    class="bg-gold hover:bg-amber-300 text-zinc-950 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition">
+                                    <i class="fa-solid fa-magnifying-glass ml-1"></i> بحث
+                                </button>
+                                <button type="button" onclick="resetDocumentRegisterFilters()"
+                                    class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 px-3.5 py-2.5 rounded-xl text-xs font-bold transition">
+                                    <i class="fa-solid fa-rotate-right ml-1"></i> إعادة ضبط
+                                </button>
+                                <button type="button" onclick="exportDocumentRegisterExcel()"
+                                    class="bg-emerald-700 hover:bg-emerald-600 text-white px-3.5 py-2.5 rounded-xl text-xs font-bold transition">
+                                    <i class="fa-solid fa-file-excel ml-1"></i> Excel
+                                </button>
+                                <button type="button" onclick="printDocumentRegister()"
+                                    class="bg-zinc-800 hover:bg-zinc-700 text-zinc-100 border border-zinc-700 px-3.5 py-2.5 rounded-xl text-xs font-bold transition">
+                                    <i class="fa-solid fa-print ml-1"></i> تقرير للطباعة
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-cardbg border border-bordergold rounded-2xl overflow-hidden shadow-xl">
+                        <div class="p-4 border-b border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div>
+                                <h3 class="text-sm font-extrabold text-zinc-100">المستندات المنشأة</h3>
+                                <p class="text-[11px] text-zinc-500 mt-1">تظهر الإجراءات المتاحة وفق صلاحيات الحساب الحالي.</p>
+                            </div>
+                            <span id="documentRegisterMatchCount" class="text-xs text-gold font-bold bg-gold/10 border border-gold/20 rounded-lg px-2.5 py-1.5">0 مستند</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table id="documentRegisterTable" class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>النوع</th>
+                                        <th>رقم المستند</th>
+                                        <th>المرسل / الراكب</th>
+                                        <th>المستلم</th>
+                                        <th>هاتف المرسل / الراكب</th>
+                                        <th>هاتف المستلم</th>
+                                        <th>المنطقة / المسار</th>
+                                        <th>التاريخ</th>
+                                        <th>الفرع</th>
+                                        <th>حالة السداد</th>
+                                        <th>حالة الشحنة</th>
+                                        <th>المبلغ</th>
+                                        <th>إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="documentRegisterTbody"></tbody>
+                            </table>
+                        </div>
+                        <div id="documentRegisterEmpty" class="hidden text-center px-5 py-12">
+                            <span class="inline-grid place-items-center w-12 h-12 rounded-2xl bg-zinc-800 text-zinc-400 mb-3"><i class="fa-solid fa-folder-open"></i></span>
+                            <h4 class="text-sm font-bold text-zinc-200">لا توجد مستندات مطابقة</h4>
+                            <p class="text-xs text-zinc-500 mt-1">تحقق من نوع المستند وحالة الشحن أو أعد ضبط المرشحات لعرض السجلات المتاحة.</p>
                         </div>
                     </div>
                 </section>
@@ -4965,7 +5192,8 @@
                 'add', 'addCargoItemRow', 'calculateDriverNet', 'clearAllTransitRecords',
                 'closeModal', 'copyTransitTableToClipboard', 'downloadCapturedImage',
                 'downloadCargoImageWithWhatsAppPrompt', 'downloadTicketImageWithWhatsAppPrompt',
-                'exportBackupJSON', 'exportDailyClosingPDF', 'exportExcel', 'exportMultiPagePDF',
+                'exportBackupJSON', 'exportDailyClosingPDF', 'exportDocumentRegisterExcel',
+                'exportExcel', 'exportMultiPagePDF',
                 'exportSystemBackupPDF', 'exportToPDF', 'exportTransitCSV', 'exportTransitExcel',
                 'getCargoFileName', 'getDebtFileName', 'getTicketFileName',
                 'handleCargoImagesSelect', 'handleGlobalSearch', 'handleLogin',
@@ -4981,11 +5209,13 @@
                 'openAddTicketForDepartedTrip', 'openCargoManifestModal',
                 'openChangePasswordModal', 'openManifestModal', 'printDocumentA5',
                 'printDocumentLandscape', 'printManifestCargo', 'printManifestPassenger',
-                'printThermalReceipt', 'printTransitTableOnly', 'refreshUI',
+                'printDocumentRegister', 'printThermalReceipt', 'printTransitTableOnly', 'refreshUI',
+                'renderDocumentRegister',
                 'renderCargoManifestTable', 'renderDailyCashClosingReport',
                 'renderPassengerManifestTable', 'renderTransitTable', 'resetBusForm',
                 'resetCargoForm', 'resetDriverForm', 'resetEmployeeForm', 'resetGlobalSearch',
-                'resetPassengerForm', 'resetTransitForm', 'resetTripForm', 'resetUserForm',
+                'resetDocumentRegisterFilters', 'resetPassengerForm', 'resetTransitForm',
+                'resetTripForm', 'resetUserForm',
                 'sendCargoReceiverWhatsApp', 'sendTripReminderWhatsApp',
                 'showLoginView', 'showManagerLoginView', 'showPasswordRecoveryView',
                 'switchFinancialSubTab', 'switchTab', 'switchTripDetailsBranch',
@@ -5164,6 +5394,9 @@
                 if (currentTab === 'users' && canManageSystemUsers()) {
                     renderUsersTable();
                 }
+                if (currentTab === 'documentRegister') {
+                    renderDocumentRegister();
+                }
             }
 
             let finBarChartInstance = null;
@@ -5187,6 +5420,340 @@
                 const selectedBranch = branchSelect ? branchSelect.value : 'ALL';
                 if (selectedBranch === 'ALL') return list;
                 return list.filter(item => item.branch === selectedBranch);
+            }
+
+            function escapeDocumentRegisterHtml(value) {
+                return String(value === undefined || value === null ? '' : value).replace(/[&<>"']/g, character => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                })[character]);
+            }
+
+            const documentCargoShipmentStatuses = Object.freeze([
+                'جديد',
+                'تم الشحن',
+                'في مكتب عدن',
+                'في مكتب عجمان',
+                'في مكتب بني ياس'
+            ]);
+
+            function getDocumentRegisterBaseRecords() {
+                if (!currentUser) return [];
+                const departedTripIds = new Set((db.trips || [])
+                    .filter(trip => trip.status === 'غادرت الرحلة')
+                    .map(trip => String(trip.id)));
+                const canViewDepartedRecords = canModifyFinancialsOrAccounts();
+                const available = [];
+
+                (getFilteredData(db.passengers || []) || []).forEach(record => {
+                    if (!canViewDepartedRecords && record.tripId && departedTripIds.has(String(record.tripId))) return;
+                    available.push({
+                        kind: 'ticket',
+                        collection: 'passengers',
+                        record,
+                        id: record.id,
+                        sender: record.name || '-',
+                        recipient: '',
+                        senderPhone: record.phone || '',
+                        receiverPhone: '',
+                        route: [record.origin, record.destination].filter(Boolean).join(' ← ') || '-',
+                        shipmentStatus: '',
+                        date: record.date || '',
+                        branch: record.branch || (currentUser && currentUser.branch) || 'فرع عجمان',
+                        payment: record.payMethod || 'غير محدد',
+                        searchValues: [record.id, record.name, record.phone, record.origin, record.destination],
+                        amount: Number(record.fare) || 0
+                    });
+                });
+
+                (getFilteredData(db.cargo || []) || []).forEach(record => {
+                    if (!canViewDepartedRecords && record.tripId && departedTripIds.has(String(record.tripId))) return;
+                    available.push({
+                        kind: 'cargo',
+                        collection: 'cargo',
+                        record,
+                        id: record.id,
+                        sender: record.sender || '-',
+                        recipient: record.receiver || '-',
+                        senderPhone: record.senderPhone || '',
+                        receiverPhone: record.receiverPhone || '',
+                        route: [record.senderAddress, record.receiverAddress].filter(Boolean).join(' ← ') || '-',
+                        shipmentStatus: documentCargoShipmentStatuses.includes(record.shipmentStatus)
+                            ? record.shipmentStatus
+                            : 'جديد',
+                        date: record.date || '',
+                        branch: record.branch || (currentUser && currentUser.branch) || 'فرع عجمان',
+                        payment: record.paymentStatus || 'غير محدد',
+                        searchValues: [
+                            record.id, record.sender, record.senderPhone, record.receiver,
+                            record.receiverPhone, record.senderAddress, record.receiverAddress
+                        ],
+                        amount: Number(record.grandTotal) || 0
+                    });
+                });
+
+                return available;
+            }
+
+            function populateDocumentRegisterFilters(records) {
+                const branchSelect = document.getElementById('documentRegisterBranch');
+                const paymentSelect = document.getElementById('documentRegisterPayment');
+                const selectedBranch = branchSelect.value;
+                const selectedPayment = paymentSelect.value;
+                const branches = [...new Set(records.map(item => item.branch).filter(Boolean))]
+                    .sort((left, right) => left.localeCompare(right, 'ar'));
+                const payments = [...new Set(records.map(item => item.payment).filter(Boolean))]
+                    .sort((left, right) => left.localeCompare(right, 'ar'));
+
+                branchSelect.replaceChildren(new Option('جميع الفروع المتاحة', 'all'));
+                branches.forEach(branch => branchSelect.add(new Option(branch, branch)));
+                branchSelect.value = branches.includes(selectedBranch) ? selectedBranch : 'all';
+
+                paymentSelect.replaceChildren(new Option('كل الحالات', 'all'));
+                payments.forEach(payment => paymentSelect.add(new Option(payment, payment)));
+                paymentSelect.value = payments.includes(selectedPayment) ? selectedPayment : 'all';
+            }
+
+            function getDocumentRegisterVisibleRecords(baseRecords) {
+                const available = baseRecords || getDocumentRegisterBaseRecords();
+                const type = document.getElementById('documentRegisterType').value;
+                const branch = document.getElementById('documentRegisterBranch').value;
+                const payment = document.getElementById('documentRegisterPayment').value;
+                const shipmentStatus = document.getElementById('documentRegisterShipmentStatus').value;
+                const dateFrom = document.getElementById('documentRegisterDateFrom').value;
+                const dateTo = document.getElementById('documentRegisterDateTo').value;
+                const query = document.getElementById('documentRegisterSearch').value.trim().toLocaleLowerCase('ar');
+
+                return available.filter(item => {
+                    if (type !== 'all' && item.kind !== type) return false;
+                    if (branch !== 'all' && item.branch !== branch) return false;
+                    if (payment !== 'all' && item.payment !== payment) return false;
+                    if (shipmentStatus !== 'all'
+                        && (item.kind !== 'cargo' || item.shipmentStatus !== shipmentStatus)) return false;
+                    if (dateFrom && (!item.date || item.date < dateFrom)) return false;
+                    if (dateTo && (!item.date || item.date > dateTo)) return false;
+                    if (query) {
+                        const searchable = item.searchValues.join(' ').toLocaleLowerCase('ar');
+                        if (!searchable.includes(query)) return false;
+                    }
+                    return true;
+                }).sort((left, right) => compareInvoiceIdsDesc(left.record, right.record));
+            }
+
+            function renderDocumentRegister() {
+                const tbody = document.getElementById('documentRegisterTbody');
+                if (!tbody) return;
+                const baseRecords = getDocumentRegisterBaseRecords();
+                populateDocumentRegisterFilters(baseRecords);
+                const records = getDocumentRegisterVisibleRecords(baseRecords);
+                const ticketCount = records.filter(item => item.kind === 'ticket').length;
+                const cargoCount = records.filter(item => item.kind === 'cargo').length;
+                const amountTotal = records.reduce((sum, item) => sum + item.amount, 0);
+
+                document.getElementById('documentRegisterTicketCount').textContent = ticketCount.toLocaleString('ar');
+                document.getElementById('documentRegisterCargoCount').textContent = cargoCount.toLocaleString('ar');
+                document.getElementById('documentRegisterAmount').textContent = `${amountTotal.toLocaleString('ar-AE', { maximumFractionDigits: 2 })} AED`;
+                document.getElementById('documentRegisterMatchCount').textContent = `${records.length.toLocaleString('ar')} مستند مطابق`;
+                document.getElementById('documentRegisterEmpty').classList.toggle('hidden', records.length > 0);
+                tbody.innerHTML = '';
+
+                const canDeleteRecords = isMahmoudOrGeneralManager();
+                records.forEach(item => {
+                    const id = escapeDocumentRegisterHtml(item.id);
+                    const sender = escapeDocumentRegisterHtml(item.sender);
+                    const recipient = escapeDocumentRegisterHtml(item.recipient || '-');
+                    const senderPhone = escapeDocumentRegisterHtml(item.senderPhone || '-');
+                    const receiverPhone = escapeDocumentRegisterHtml(item.receiverPhone || '-');
+                    const route = escapeDocumentRegisterHtml(item.route);
+                    const branch = escapeDocumentRegisterHtml(item.branch);
+                    const date = escapeDocumentRegisterHtml(item.date || '-');
+                    const payment = escapeDocumentRegisterHtml(item.payment);
+                    const shipmentStatus = item.kind === 'cargo'
+                        ? (documentCargoShipmentStatuses.includes(item.shipmentStatus) ? item.shipmentStatus : 'جديد')
+                        : '';
+                    const amount = item.amount.toLocaleString('ar-AE', { maximumFractionDigits: 2 });
+                    const typeLabel = item.kind === 'ticket' ? 'تذكرة' : 'شحن';
+                    const statusClass = item.payment === 'مدفوع'
+                        ? 'bg-emerald-950 text-emerald-300 border-emerald-800/60'
+                        : 'bg-amber-950/70 text-amber-300 border-amber-800/50';
+                    const editAction = item.kind === 'ticket' ? 'edit-ticket' : 'edit-cargo';
+                    const previewAction = item.kind === 'ticket' ? 'preview-ticket' : 'preview-cargo';
+                    const shipmentStatusCell = item.kind === 'cargo'
+                        ? `<select class="document-register-shipment-select bg-zinc-900 text-zinc-100 border border-zinc-700 rounded-lg px-2 py-1.5 text-[11px] font-bold focus:border-gold" data-shipment-status-id="${id}" aria-label="حالة شحنة الفاتورة ${id}">${documentCargoShipmentStatuses.map(status => `<option value="${escapeDocumentRegisterHtml(status)}" ${shipmentStatus === status ? 'selected' : ''}>${escapeDocumentRegisterHtml(status)}</option>`).join('')}</select>`
+                        : '<span class="text-zinc-500 text-xs">لا ينطبق</span>';
+                    const recordActions = `
+                        <button type="button" class="register-action bg-red-700/80 text-white" data-register-action="${previewAction}" data-record-id="${id}" title="معاينة المستند" aria-label="معاينة المستند ${id}"><i class="fa-solid fa-eye"></i></button>
+                        <button type="button" class="register-action bg-amber-500 text-zinc-950" data-register-action="${editAction}" data-record-id="${id}" title="تعديل المستند" aria-label="تعديل المستند ${id}"><i class="fa-solid fa-pen"></i></button>
+                        ${item.kind === 'cargo' && Array.isArray(item.record.photos) && item.record.photos.length
+                            ? `<button type="button" class="register-action bg-sky-700 text-white" data-register-action="cargo-photos" data-record-id="${id}" title="عرض الصور المرفقة" aria-label="عرض الصور المرفقة"><i class="fa-solid fa-images"></i></button>`
+                            : ''}
+                        ${canDeleteRecords
+                            ? `<button type="button" class="register-action bg-red-950 text-red-200 border-red-800/70" data-register-action="delete-${item.kind}" data-record-id="${id}" title="حذف المستند" aria-label="حذف المستند ${id}"><i class="fa-solid fa-trash"></i></button>`
+                            : ''}`;
+
+                    tbody.insertAdjacentHTML('beforeend', `
+                        <tr>
+                            <td><span class="inline-flex items-center gap-1.5 rounded-lg border px-2 py-1 text-[11px] font-bold ${item.kind === 'ticket' ? 'bg-amber-950/50 text-amber-300 border-amber-800/50' : 'bg-sky-950/50 text-sky-300 border-sky-800/50'}"><i class="fa-solid ${item.kind === 'ticket' ? 'fa-ticket' : 'fa-boxes-packing'}"></i>${typeLabel}</span></td>
+                            <td><strong class="text-gold" dir="ltr">#${id}</strong></td>
+                            <td><strong class="text-zinc-100">${sender}</strong></td>
+                            <td><strong class="text-zinc-100">${recipient}</strong></td>
+                            <td><span dir="ltr" class="inline-block text-zinc-200">${senderPhone}</span></td>
+                            <td><span dir="ltr" class="inline-block text-zinc-200">${receiverPhone}</span></td>
+                            <td class="max-w-[210px] whitespace-normal">${route === '-' ? '<span class="text-zinc-500">-</span>' : route}</td>
+                            <td><span dir="ltr" class="inline-block text-zinc-300">${date}</span></td>
+                            <td><span class="bg-zinc-800 text-zinc-300 px-2 py-1 rounded-lg text-[11px]">${branch}</span></td>
+                            <td><span class="inline-block border ${statusClass} px-2 py-1 rounded-lg text-[11px] font-bold">${payment}</span></td>
+                            <td>${shipmentStatusCell}</td>
+                            <td class="font-black text-gold whitespace-nowrap" dir="ltr">${amount} AED</td>
+                            <td><div class="register-actions">${recordActions}</div></td>
+                        </tr>
+                    `);
+                });
+
+                if (!records.length) {
+                    tbody.innerHTML = '<tr><td colspan="13" class="text-center text-zinc-500 py-7">لا توجد نتائج مطابقة للمرشحات الحالية.</td></tr>';
+                }
+            }
+
+            function resetDocumentRegisterFilters() {
+                document.getElementById('documentRegisterType').value = 'all';
+                document.getElementById('documentRegisterBranch').value = 'all';
+                document.getElementById('documentRegisterPayment').value = 'all';
+                document.getElementById('documentRegisterShipmentStatus').value = 'all';
+                document.getElementById('documentRegisterDateFrom').value = '';
+                document.getElementById('documentRegisterDateTo').value = '';
+                document.getElementById('documentRegisterSearch').value = '';
+                renderDocumentRegister();
+            }
+
+            function exportDocumentRegisterExcel() {
+                if (typeof XLSX === 'undefined') {
+                    alert('تعذر تحميل أداة تصدير Excel.');
+                    return;
+                }
+                const records = getDocumentRegisterVisibleRecords();
+                const rows = records.map(item => ({
+                    'نوع المستند': item.kind === 'ticket' ? 'تذكرة' : 'فاتورة شحن',
+                    'رقم المستند': item.id,
+                    'اسم المرسل / الراكب': item.sender,
+                    'اسم المستلم': item.recipient,
+                    'هاتف المرسل / الراكب': item.senderPhone,
+                    'هاتف المستلم': item.receiverPhone,
+                    'المسار / العنوان': item.route,
+                    'التاريخ': item.date,
+                    'الفرع': item.branch,
+                    'حالة / طريقة السداد': item.payment,
+                    'حالة الشحنة': item.kind === 'cargo' ? item.shipmentStatus : 'لا ينطبق',
+                    'المبلغ (AED)': item.amount
+                }));
+                const worksheet = XLSX.utils.json_to_sheet(rows);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, 'المستندات');
+                XLSX.writeFile(workbook, `WadiBina_Documents_${Date.now()}.xlsx`);
+            }
+
+            function printDocumentRegister() {
+                const records = getDocumentRegisterVisibleRecords();
+                const printWindow = window.open('', '_blank', 'width=1100,height=750');
+                if (!printWindow) {
+                    alert('يرجى السماح بفتح النوافذ المنبثقة لطباعة التقرير.');
+                    return;
+                }
+                const rows = records.map((item, index) => `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${item.kind === 'ticket' ? 'تذكرة' : 'فاتورة شحن'}</td>
+                        <td>#${escapeDocumentRegisterHtml(item.id)}</td>
+                        <td>${escapeDocumentRegisterHtml(item.sender)}</td>
+                        <td>${escapeDocumentRegisterHtml(item.recipient || '-')}</td>
+                        <td>${escapeDocumentRegisterHtml(item.senderPhone || '-')}</td>
+                        <td>${escapeDocumentRegisterHtml(item.receiverPhone || '-')}</td>
+                        <td>${escapeDocumentRegisterHtml(item.route)}</td>
+                        <td>${escapeDocumentRegisterHtml(item.date || '-')}</td>
+                        <td>${escapeDocumentRegisterHtml(item.branch)}</td>
+                        <td>${escapeDocumentRegisterHtml(item.payment)}</td>
+                        <td>${escapeDocumentRegisterHtml(item.kind === 'cargo' ? item.shipmentStatus : 'لا ينطبق')}</td>
+                        <td>${item.amount.toLocaleString('ar-AE', { maximumFractionDigits: 2 })} AED</td>
+                    </tr>`).join('');
+                const total = records.reduce((sum, item) => sum + item.amount, 0);
+                printWindow.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير المستندات المنشأة</title>
+                    <style>
+                        body{font-family:'Cairo',Tahoma,sans-serif;color:#111;padding:24px}
+                        h1{font-size:20px;margin:0 0 6px}p{font-size:12px;color:#444;margin:0 0 14px}
+                        .summary{display:flex;gap:22px;margin:14px 0;font-size:12px;font-weight:bold}
+                        table{width:100%;border-collapse:collapse;font-size:10px}
+                        th,td{border:1px solid #999;padding:6px;text-align:right}
+                        th{background:#eee}tfoot td{font-weight:bold;background:#f6f6f6}
+                        @page{size:landscape;margin:12mm}
+                    </style></head><body id="documentRegisterPrintRoot">
+                    <h1>تقرير التذاكر وفواتير الشحن</h1>
+                    <p>تقرير السجلات المطابقة للمرشحات الحالية — تاريخ الطباعة: ${escapeDocumentRegisterHtml(new Date().toLocaleDateString('ar-AE'))}</p>
+                    <div class="summary"><span>التذاكر: ${records.filter(item => item.kind === 'ticket').length}</span>
+                    <span>فواتير الشحن: ${records.filter(item => item.kind === 'cargo').length}</span>
+                    <span>المجموع: ${total.toLocaleString('ar-AE', { maximumFractionDigits: 2 })} AED</span></div>
+                    <table><thead><tr><th>م</th><th>النوع</th><th>الرقم</th><th>المرسل / الراكب</th><th>المستلم</th><th>هاتف المرسل / الراكب</th><th>هاتف المستلم</th><th>المنطقة / المسار</th><th>التاريخ</th><th>الفرع</th><th>السداد</th><th>حالة الشحنة</th><th>المبلغ</th></tr></thead>
+                    <tbody>${rows || '<tr><td colspan="13">لا توجد مستندات مطابقة</td></tr>'}</tbody>
+                    <tfoot><tr><td colspan="12">إجمالي المبالغ</td><td>${total.toLocaleString('ar-AE', { maximumFractionDigits: 2 })} AED</td></tr></tfoot></table>
+                    <script>window.onload=function(){window.print();};<\/script></body></html>`);
+                printWindow.document.close();
+                printWindow.opener = null;
+            }
+
+            function handleDocumentRegisterAction(event) {
+                const button = event.target.closest('[data-register-action]');
+                if (!button) return;
+                const action = button.dataset.registerAction;
+                const id = button.dataset.recordId;
+                if (action === 'preview-ticket') previewTicketImage(id);
+                if (action === 'preview-cargo') previewCargoImage(id);
+                if (action === 'edit-ticket') {
+                    switchTab('passengers');
+                    editPassenger(id);
+                }
+                if (action === 'edit-cargo') {
+                    switchTab('cargo');
+                    editCargo(id);
+                }
+                if (action === 'cargo-photos') viewCargoPhotos(id);
+                if (action === 'delete-ticket' && isMahmoudOrGeneralManager()) {
+                    const index = db.passengers.findIndex(record => String(record.id) === String(id));
+                    if (index >= 0) deleteRecord('passengers', index);
+                }
+                if (action === 'delete-cargo' && isMahmoudOrGeneralManager()) {
+                    const index = db.cargo.findIndex(record => String(record.id) === String(id));
+                    if (index >= 0) deleteRecord('cargo', index);
+                }
+            }
+
+            function updateCargoShipmentStatus(id, status) {
+                if (!documentCargoShipmentStatuses.includes(status)) return;
+                const cargo = (db.cargo || []).find(record => String(record.id) === String(id));
+                if (!cargo) return;
+                if (cargo.tripId) {
+                    const trip = (db.trips || []).find(item => String(item.id) === String(cargo.tripId));
+                    if (trip && trip.status === 'غادرت الرحلة' && !canModifyFinancialsOrAccounts()) {
+                        alert('عذراً، لا يمكن تعديل حالة شحنة فاتورة مرتبطة برحلة مغادرة إلا من خلال الإدارة المالية.');
+                        renderDocumentRegister();
+                        return;
+                    }
+                }
+                cargo.shipmentStatus = status;
+                saveDB();
+                refreshUI();
+            }
+
+            function handleDocumentRegisterStatusChange(event) {
+                const select = event.target.closest('[data-shipment-status-id]');
+                if (select) updateCargoShipmentStatus(select.dataset.shipmentStatusId, select.value);
+            }
+
+            const documentRegisterTbody = document.getElementById('documentRegisterTbody');
+            if (documentRegisterTbody) {
+                documentRegisterTbody.addEventListener('click', handleDocumentRegisterAction);
+                documentRegisterTbody.addEventListener('change', handleDocumentRegisterStatusChange);
             }
 
             function renderDashboardData() {
@@ -7059,6 +7626,9 @@
                         oldObj.items = items;
                         oldObj.grandTotal = grandTotal;
                         oldObj.paymentStatus = payStatus;
+                        oldObj.shipmentStatus = documentCargoShipmentStatuses.includes(oldObj.shipmentStatus)
+                            ? oldObj.shipmentStatus
+                            : 'جديد';
                         oldObj.notes = notes;
                         oldObj.photos = [...currentCargoAttachments];
                         if (!oldObj.auditLog) oldObj.auditLog = [{ action: 'إنشاء الفاتورة', user: oldObj.createdBy || author, time: oldObj.createdAt || nowStr }];
@@ -7084,6 +7654,7 @@
                         items: items,
                         grandTotal: grandTotal,
                         paymentStatus: payStatus,
+                        shipmentStatus: 'جديد',
                         notes: notes,
                         photos: [...currentCargoAttachments],
                         branch: currentUser.branch || 'فرع عجمان',
@@ -9351,6 +9922,7 @@ Status: Payment Received - Pending Approval`,
                 renderPassengerManifestTable, renderCargoManifestTable, printManifestPassenger, printManifestCargo,
                 printDocumentA5, printDocumentLandscape, printCaptureElement, createIsolatedCaptureCanvas,
                 downloadCapturedImage, exportToPDF, exportMultiPagePDF, closeModal, handleGlobalSearch, resetGlobalSearch,
+                renderDocumentRegister, resetDocumentRegisterFilters, exportDocumentRegisterExcel, printDocumentRegister,
                 deleteRecord, exportExcel, exportBackupJSON, importBackupJSON, exportSystemBackupPDF, importBackupPDF,
                 sendTicketViaWhatsApp, sendCargoViaWhatsApp, downloadTicketImageWithWhatsAppPrompt, downloadCargoImageWithWhatsAppPrompt,
                 toggleDeviceLayoutMode, toggleSidebar, refreshUI, renderDailyCashClosingReport, exportDailyClosingPDF,
